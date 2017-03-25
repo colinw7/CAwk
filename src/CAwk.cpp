@@ -170,7 +170,7 @@ parseProgram()
     parser_->skipSpace();
 
     CAwkActionListPtr actionList =
-      CAwkActionList::create(CAwkActionList::PROGRAM_TYPE);
+      CAwkActionList::create(CAwkActionList::Type::PROGRAM);
 
     if (parser_->isChar('{')) {
       if (! parseStatementList(&actionList))
@@ -470,7 +470,7 @@ parseFunction(CAwkFunctionPtr *function)
 
   // read function body
   CAwkActionListPtr actionList =
-    CAwkActionList::create(CAwkActionList::ROUTINE_TYPE);
+    CAwkActionList::create(CAwkActionList::Type::ROUTINE);
 
   if (! parseStatementList(&actionList))
     return false;
@@ -947,7 +947,7 @@ parseStatement(CAwkActionPtr *action)
   // { <statement_list> }
   else if (parser_->isChar('{')) {
     CAwkActionListPtr actionList =
-      CAwkActionList::create(CAwkActionList::SIMPLE_TYPE);
+      CAwkActionList::create(CAwkActionList::Type::SIMPLE);
 
     if (! parseStatementList(&actionList))
       return false;
@@ -1051,14 +1051,14 @@ parseSimpleStatement(CAwkActionPtr *action)
     CAwkOFilePtr file;
 
     if      (parser_->isChar('>')) {
-      CAwkOFile::Type type = CAwkOFile::WRITE_FILE;
+      CAwkOFile::Type type = CAwkOFile::Type::WRITE_FILE;
 
       parser_->skipChar();
 
       if (parser_->isChar('>')) {
         parser_->skipChar();
 
-        type = CAwkOFile::APPEND_FILE;
+        type = CAwkOFile::Type::APPEND_FILE;
       }
 
       if (! parseExpression(&fileExpr))
@@ -1072,7 +1072,7 @@ parseSimpleStatement(CAwkActionPtr *action)
       if (! parseExpression(&fileExpr))
         return false;
 
-      file = CAwkOFile::create(fileExpr, CAwkOFile::PIPE_COMMAND);
+      file = CAwkOFile::create(fileExpr, CAwkOFile::Type::PIPE_COMMAND);
     }
 
     *action = CAwkPrintFAction::create(expressionList, file);
@@ -1095,14 +1095,14 @@ parseSimpleStatement(CAwkActionPtr *action)
     CAwkOFilePtr file;
 
     if      (parser_->isChar('>')) {
-      CAwkOFile::Type type = CAwkOFile::WRITE_FILE;
+      CAwkOFile::Type type = CAwkOFile::Type::WRITE_FILE;
 
       parser_->skipChar();
 
       if (parser_->isChar('>')) {
         parser_->skipChar();
 
-        type = CAwkOFile::APPEND_FILE;
+        type = CAwkOFile::Type::APPEND_FILE;
       }
 
       if (! parseExpression(&fileExpr))
@@ -1116,7 +1116,7 @@ parseSimpleStatement(CAwkActionPtr *action)
       if (! parseExpression(&fileExpr))
         return false;
 
-      file = CAwkOFile::create(fileExpr, CAwkOFile::PIPE_COMMAND);
+      file = CAwkOFile::create(fileExpr, CAwkOFile::Type::PIPE_COMMAND);
     }
 
     *action = CAwkPrintAction::create(expressionList, file);
@@ -1204,7 +1204,7 @@ parseInputOutputAction(CAwkActionPtr *action)
         return false;
     }
 
-    CAwkIFilePtr file = CAwkIFile::create(filePtr, CAwkIFile::READ_FILE);
+    CAwkIFilePtr file = CAwkIFile::create(filePtr, CAwkIFile::Type::READ_FILE);
 
     *action = CAwkGetLineAction::create(var, file);
   }
@@ -1481,7 +1481,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
         return false;
     }
 
-    CAwkIFilePtr file = CAwkIFile::create(filePtr, CAwkIFile::READ_FILE);
+    CAwkIFilePtr file = CAwkIFile::create(filePtr, CAwkIFile::Type::READ_FILE);
 
     CAwkExpressionTermPtr expr = CAwkGetLineExpr::create(var, file);
 
@@ -1758,7 +1758,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
         filePtr->pushTerm(*term);
 
-        CAwkIFilePtr file = CAwkIFile::create(filePtr, CAwkIFile::PIPE_COMMAND);
+        CAwkIFilePtr file = CAwkIFile::create(filePtr, CAwkIFile::Type::PIPE_COMMAND);
 
         *term = CAwkGetLineExpr::create(var, file);
       }

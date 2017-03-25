@@ -151,7 +151,7 @@ checkUnstack(CAwkOperatorPtr op)
   if (lastOp_.isValid()) {
     if (lastOp_->getPrecedence() > op->getPrecedence() ||
         (lastOp_->getPrecedence() == op->getPrecedence() &&
-         op->getDirection() == CAwkOperator::EVAL_L_TO_R))
+         op->getDirection() == CAwkOperator::Direction::L_TO_R))
       return true;
   }
 
@@ -194,7 +194,7 @@ unstackExpression()
 
   CAwkExpressionTermPtr result;
 
-  if      (op->getType() & CAwkOperator::OP_TYPE_UNARY) {
+  if      (op->isUnary()) {
     termList_.push_back(rterm);
 
     result = op->execute();
@@ -215,7 +215,7 @@ unstackExpression()
     else
       value_ = false;
   }
-  else if (op->getType() & CAwkOperator::OP_TYPE_BINARY) {
+  else if (op->isBinary()) {
     CAwkExpressionTermPtr term3 = termList_.back();
 
     termList_.pop_back();
@@ -243,7 +243,7 @@ unstackExpression()
     else
       value_ = false;
   }
-  else if (op->getType() & CAwkOperator::OP_TYPE_TERNARY) {
+  else if (op->isTernary()) {
     // can only be ? or :
     CAwkExpressionTermPtr term3 = termList_.back();
 

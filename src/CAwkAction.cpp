@@ -111,7 +111,7 @@ CAwkIfAction::
 CAwkIfAction(CAwkExpressionPtr expression, CAwkActionPtr action) :
  expression_(expression)
 {
-  actionList_ = CAwkActionList::create(CAwkActionList::SIMPLE_TYPE);
+  actionList_ = CAwkActionList::create(CAwkActionList::Type::SIMPLE);
 
   actionList_->addAction(action);
 }
@@ -140,8 +140,8 @@ CAwkIfElseAction(CAwkExpressionPtr expression,
                  CAwkActionPtr action1, CAwkActionPtr action2) :
  expression_(expression)
 {
-  actionList1_ = CAwkActionList::create(CAwkActionList::SIMPLE_TYPE);
-  actionList2_ = CAwkActionList::create(CAwkActionList::SIMPLE_TYPE);
+  actionList1_ = CAwkActionList::create(CAwkActionList::Type::SIMPLE);
+  actionList2_ = CAwkActionList::create(CAwkActionList::Type::SIMPLE);
 
   actionList1_->addAction(action1);
   actionList2_->addAction(action2);
@@ -175,7 +175,7 @@ CAwkForAction(CAwkExpressionPtr expression1, CAwkExpressionPtr expression2,
  expression1_(expression1), expression2_(expression2),
  expression3_(expression3)
 {
-  actionList_ = CAwkActionList::create(CAwkActionList::SIMPLE_TYPE);
+  actionList_ = CAwkActionList::create(CAwkActionList::Type::SIMPLE);
 
   actionList_->addAction(action);
 }
@@ -225,7 +225,7 @@ CAwkForInAction(CAwkVariableRefPtr var1, CAwkVariableRefPtr var2,
                 CAwkActionPtr action) :
  var1_(var1), var2_(var2)
 {
-  actionList_ = CAwkActionList::create(CAwkActionList::SIMPLE_TYPE);
+  actionList_ = CAwkActionList::create(CAwkActionList::Type::SIMPLE);
 
   actionList_->addAction(action);
 }
@@ -272,7 +272,7 @@ CAwkWhileAction::
 CAwkWhileAction(CAwkExpressionPtr expression, CAwkActionPtr action) :
  expression_(expression)
 {
-  actionList_ = CAwkActionList::create(CAwkActionList::SIMPLE_TYPE);
+  actionList_ = CAwkActionList::create(CAwkActionList::Type::SIMPLE);
 
   actionList_->addAction(action);
 }
@@ -316,7 +316,7 @@ CAwkDoWhileAction::
 CAwkDoWhileAction(CAwkActionPtr action, CAwkExpressionPtr expression) :
  expression_(expression)
 {
-  actionList_ = CAwkActionList::create(CAwkActionList::SIMPLE_TYPE);
+  actionList_ = CAwkActionList::create(CAwkActionList::Type::SIMPLE);
 
   actionList_->addAction(action);
 }
@@ -606,17 +606,17 @@ exec()
 
   for ( ; p1 != p2; ++p1) {
     if      (CAwkInst->isBreakFlag()) {
-      if (type_ == PROGRAM_TYPE || type_ == ROUTINE_TYPE)
+      if (type_ == Type::PROGRAM || type_ == Type::ROUTINE)
         CAwkInst->error("break not in iteration");
 
-      if (type_ == SIMPLE_TYPE || type_ == ITERATION_TYPE)
+      if (type_ == Type::SIMPLE || type_ == Type::ITERATION)
         break;
     }
     else if (CAwkInst->isContinueFlag()) {
-      if (type_ == PROGRAM_TYPE || type_ == ROUTINE_TYPE)
+      if (type_ == Type::PROGRAM || type_ == Type::ROUTINE)
         CAwkInst->error("continue not in iteration");
 
-      if (type_ == SIMPLE_TYPE)
+      if (type_ == Type::SIMPLE)
         break;
     }
     else if (CAwkInst->isNextFlag())
@@ -630,25 +630,25 @@ exec()
   }
 
   if (CAwkInst->isBreakFlag()) {
-    if (type_ == PROGRAM_TYPE || type_ == ROUTINE_TYPE)
+    if (type_ == Type::PROGRAM || type_ == Type::ROUTINE)
       CAwkInst->error("break not in iteration");
 
-    if (type_ == ITERATION_TYPE)
+    if (type_ == Type::ITERATION)
       CAwkInst->resetBreakFlag();
   }
   else if (CAwkInst->isContinueFlag()) {
-    if (type_ == PROGRAM_TYPE || type_ == ROUTINE_TYPE)
+    if (type_ == Type::PROGRAM || type_ == Type::ROUTINE)
       CAwkInst->error("continue not in iteration");
 
-    if (type_ == ITERATION_TYPE)
+    if (type_ == Type::ITERATION)
       CAwkInst->resetContinueFlag();
   }
   else if (CAwkInst->isNextFlag()) {
-    if (type_ == PROGRAM_TYPE)
+    if (type_ == Type::PROGRAM)
       CAwkInst->resetNextFlag();
   }
   else if (CAwkInst->isReturnFlag()) {
-    if (type_ == PROGRAM_TYPE || type_ == ROUTINE_TYPE)
+    if (type_ == Type::PROGRAM || type_ == Type::ROUTINE)
       CAwkInst->resetReturnFlag();
   }
 }
@@ -948,9 +948,9 @@ close()
 
   std::string res;
 
-  if      (type_ == INPUT)
+  if      (type_ == Type::INPUT)
     command.addStringDest(*output_);
-  else if (type_ == OUTPUT) {
+  else if (type_ == Type::OUTPUT) {
     command.addStringSrc (input_);
     command.addStringDest(res);
   }
@@ -959,7 +959,7 @@ close()
 
   command.wait();
 
-  if (type_ == OUTPUT)
+  if (type_ == Type::OUTPUT)
     std::cout << res;
 
   opened_ = false;
@@ -971,7 +971,7 @@ bool
 CAwkIFile::
 read(std::string &str) const
 {
-  if      (type_ == READ_FILE) {
+  if      (type_ == Type::READ_FILE) {
     CFile *file = getFile();
 
     char buffer[256];
@@ -986,10 +986,10 @@ read(std::string &str) const
 
     return (str.size() > 0);
   }
-  else if (type_ == PIPE_COMMAND) {
+  else if (type_ == Type::PIPE_COMMAND) {
     std::string cmdStr = file_->getValue()->getString();
 
-    CAwkPipe *pipe = CAwkInst->getPipe(cmdStr, CAwkPipe::INPUT);
+    CAwkPipe *pipe = CAwkInst->getPipe(cmdStr, CAwkPipe::Type::INPUT);
 
     pipe->setOutput(&str);
 
@@ -1008,7 +1008,7 @@ getFile() const
   if (file_.isValid()) {
     std::string fileName = file_->getValue()->getString();
 
-    return CAwkInst->getFile(fileName, CFileBase::READ);
+    return CAwkInst->getFile(fileName, CFileBase::Mode::READ);
   }
   else
     return CAwkInst->getFile(stdin);
@@ -1018,7 +1018,7 @@ void
 CAwkIFile::
 print(std::ostream &os) const
 {
-  if (type_ == READ_FILE)
+  if (type_ == Type::READ_FILE)
     os << "<" << *file_;
   else
     os << "|" << *file_;
@@ -1028,15 +1028,15 @@ void
 CAwkOFile::
 write(const std::string &str)
 {
-  if      (type_ == WRITE_FILE || type_ == APPEND_FILE) {
+  if      (type_ == Type::WRITE_FILE || type_ == Type::APPEND_FILE) {
     CFile *file = getFile();
 
     file->write(str);
   }
-  else if (type_ == PIPE_COMMAND) {
+  else if (type_ == Type::PIPE_COMMAND) {
     std::string cmdStr = expression_->getValue()->getString();
 
-    CAwkPipe *pipe = CAwkInst->getPipe(cmdStr, CAwkPipe::OUTPUT);
+    CAwkPipe *pipe = CAwkInst->getPipe(cmdStr, CAwkPipe::Type::OUTPUT);
 
     pipe->addInput(str);
   }
@@ -1051,10 +1051,10 @@ getFile() const
   if (expression_.isValid()) {
     std::string fileName = expression_->getValue()->getString();
 
-    if      (type_ == WRITE_FILE)
-      return CAwkInst->getFile(fileName, CFileBase::APPEND);
-    else if (type_ == APPEND_FILE)
-      return CAwkInst->getFile(fileName, CFileBase::WRITE);
+    if      (type_ == Type::WRITE_FILE)
+      return CAwkInst->getFile(fileName, CFileBase::Mode::APPEND);
+    else if (type_ == Type::APPEND_FILE)
+      return CAwkInst->getFile(fileName, CFileBase::Mode::WRITE);
     else
       assert(false);
   }
@@ -1066,10 +1066,10 @@ void
 CAwkOFile::
 print(std::ostream &os) const
 {
-  if      (type_ == WRITE_FILE)
+  if      (type_ == Type::WRITE_FILE)
     os << ">" << *expression_;
-  else if (type_ == APPEND_FILE)
+  else if (type_ == Type::APPEND_FILE)
     os << ">>" << *expression_;
-  else if (type_ == PIPE_COMMAND)
+  else if (type_ == Type::PIPE_COMMAND)
     os << "|" << *expression_;
 }

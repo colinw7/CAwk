@@ -55,13 +55,13 @@ class CAwkPatternAction {
 
 class CAwk {
  private:
-  enum BlockFlags {
-    NO_FLAG       = 0,
-    BREAK_FLAG    = (1<<0),
-    CONTINUE_FLAG = (1<<1),
-    NEXT_FLAG     = (1<<2),
-    RETURN_FLAG   = (1<<3),
-    EXIT_FLAG     = (1<<4)
+  enum class BlockFlags {
+    NONE     = 0,
+    BREAK    = (1<<0),
+    CONTINUE = (1<<1),
+    NEXT     = (1<<2),
+    RETURN   = (1<<3),
+    EXIT     = (1<<4)
   };
 
   typedef std::vector<CAwkFunctionPtr>      FunctionList;
@@ -193,25 +193,25 @@ class CAwk {
   void startBlock(CAwkActionBlockPtr block);
   void endBlock();
 
-  void setBreakFlag  () { block_flags_ = BREAK_FLAG; }
-  void resetBreakFlag() { block_flags_ = NO_FLAG  ; }
-  bool isBreakFlag   () { return (block_flags_ & BREAK_FLAG); }
+  void setBreakFlag  () { block_flags_ = BlockFlags::BREAK; }
+  void resetBreakFlag() { block_flags_ = BlockFlags::NONE  ; }
+  bool isBreakFlag   () { return (block_flags_ == BlockFlags::BREAK); }
 
-  void setContinueFlag  () { block_flags_ = CONTINUE_FLAG; }
-  void resetContinueFlag() { block_flags_ = NO_FLAG  ; }
-  bool isContinueFlag   () { return (block_flags_ & CONTINUE_FLAG); }
+  void setContinueFlag  () { block_flags_ = BlockFlags::CONTINUE; }
+  void resetContinueFlag() { block_flags_ = BlockFlags::NONE  ; }
+  bool isContinueFlag   () { return (block_flags_ == BlockFlags::CONTINUE); }
 
-  void setNextFlag  () { block_flags_ = NEXT_FLAG; }
-  void resetNextFlag() { block_flags_ = NO_FLAG  ; }
-  bool isNextFlag   () { return (block_flags_ & NEXT_FLAG); }
+  void setNextFlag  () { block_flags_ = BlockFlags::NEXT; }
+  void resetNextFlag() { block_flags_ = BlockFlags::NONE  ; }
+  bool isNextFlag   () { return (block_flags_ == BlockFlags::NEXT); }
 
-  void setReturnFlag  () { block_flags_ = RETURN_FLAG; }
-  void resetReturnFlag() { block_flags_ = NO_FLAG  ; }
-  bool isReturnFlag   () { return (block_flags_ & RETURN_FLAG); }
+  void setReturnFlag  () { block_flags_ = BlockFlags::RETURN; }
+  void resetReturnFlag() { block_flags_ = BlockFlags::NONE  ; }
+  bool isReturnFlag   () { return (block_flags_ == BlockFlags::RETURN); }
 
-  void setExitFlag  () { block_flags_ = EXIT_FLAG; }
-  void resetExitFlag() { block_flags_ = NO_FLAG  ; }
-  bool isExitFlag   () { return (block_flags_ & EXIT_FLAG); }
+  void setExitFlag  () { block_flags_ = BlockFlags::EXIT; }
+  void resetExitFlag() { block_flags_ = BlockFlags::NONE  ; }
+  bool isExitFlag   () { return (block_flags_ == BlockFlags::EXIT); }
 
   void error(const std::string &str) const;
 };

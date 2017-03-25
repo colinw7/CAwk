@@ -3,21 +3,21 @@
 
 class CAwkOperator : public CAwkExpressionTerm {
  public:
-  enum OpType {
-    OP_TYPE_UNARY       = (1<<0),
-    OP_TYPE_BINARY      = (1<<1),
-    OP_TYPE_TERNARY     = (1<<2),
-    OP_TYPE_START_GROUP = (1<<3),
-    OP_TYPE_END_GROUP   = (1<<4),
-    OP_TYPE_ASSIGN      = (1<<5),
+  enum class OpType {
+    UNARY       = (1<<0),
+    BINARY      = (1<<1),
+    TERNARY     = (1<<2),
+    START_GROUP = (1<<3),
+    END_GROUP   = (1<<4),
+    ASSIGN      = (1<<5),
 
-    OP_TYPE_UNARY_ASSIGN  = (OP_TYPE_UNARY  | OP_TYPE_ASSIGN),
-    OP_TYPE_BINARY_ASSIGN = (OP_TYPE_BINARY | OP_TYPE_ASSIGN)
+    UNARY_ASSIGN  = (UNARY  | ASSIGN),
+    BINARY_ASSIGN = (BINARY | ASSIGN)
   };
 
-  enum Direction {
-    EVAL_L_TO_R,
-    EVAL_R_TO_L
+  enum class Direction {
+    L_TO_R,
+    R_TO_L
   };
 
  protected:
@@ -38,8 +38,9 @@ class CAwkOperator : public CAwkExpressionTerm {
 
   virtual OpType getType() const = 0;
 
-  bool isUnary () { return (getType() & OP_TYPE_UNARY ); }
-  bool isBinary() { return (getType() & OP_TYPE_BINARY); }
+  bool isUnary  () { return (int(getType()) & int(OpType::UNARY  )); }
+  bool isBinary () { return (int(getType()) & int(OpType::BINARY )); }
+  bool isTernary() { return (int(getType()) & int(OpType::TERNARY)); }
 
   virtual Direction getDirection() const = 0;
 
@@ -76,9 +77,9 @@ class CAwkAssignOperator : public CAwkOperator {
   CAwkAssignOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY_ASSIGN; }
+  OpType getType() const { return OpType::BINARY_ASSIGN; }
 
-  Direction getDirection() const { return EVAL_R_TO_L; }
+  Direction getDirection() const { return Direction::R_TO_L; }
 
   uint getPrecedence() const { return 1; }
 
@@ -97,9 +98,9 @@ class CAwkPlusEqualsOperator : public CAwkOperator {
   CAwkPlusEqualsOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY_ASSIGN; }
+  OpType getType() const { return OpType::BINARY_ASSIGN; }
 
-  Direction getDirection() const { return EVAL_R_TO_L; }
+  Direction getDirection() const { return Direction::R_TO_L; }
 
   uint getPrecedence() const { return 1; }
 
@@ -118,9 +119,9 @@ class CAwkMinusEqualsOperator : public CAwkOperator {
   CAwkMinusEqualsOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY_ASSIGN; }
+  OpType getType() const { return OpType::BINARY_ASSIGN; }
 
-  Direction getDirection() const { return EVAL_R_TO_L; }
+  Direction getDirection() const { return Direction::R_TO_L; }
 
   uint getPrecedence() const { return 1; }
 
@@ -139,9 +140,9 @@ class CAwkTimesEqualsOperator : public CAwkOperator {
   CAwkTimesEqualsOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY_ASSIGN; }
+  OpType getType() const { return OpType::BINARY_ASSIGN; }
 
-  Direction getDirection() const { return EVAL_R_TO_L; }
+  Direction getDirection() const { return Direction::R_TO_L; }
 
   uint getPrecedence() const { return 1; }
 
@@ -160,9 +161,9 @@ class CAwkDivideEqualsOperator : public CAwkOperator {
   CAwkDivideEqualsOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY_ASSIGN; }
+  OpType getType() const { return OpType::BINARY_ASSIGN; }
 
-  Direction getDirection() const { return EVAL_R_TO_L; }
+  Direction getDirection() const { return Direction::R_TO_L; }
 
   uint getPrecedence() const { return 1; }
 
@@ -181,9 +182,9 @@ class CAwkModulusEqualsOperator : public CAwkOperator {
   CAwkModulusEqualsOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY_ASSIGN; }
+  OpType getType() const { return OpType::BINARY_ASSIGN; }
 
-  Direction getDirection() const { return EVAL_R_TO_L; }
+  Direction getDirection() const { return Direction::R_TO_L; }
 
   uint getPrecedence() const { return 1; }
 
@@ -202,9 +203,9 @@ class CAwkPowerEqualsOperator : public CAwkOperator {
   CAwkPowerEqualsOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY_ASSIGN; }
+  OpType getType() const { return OpType::BINARY_ASSIGN; }
 
-  Direction getDirection() const { return EVAL_R_TO_L; }
+  Direction getDirection() const { return Direction::R_TO_L; }
 
   uint getPrecedence() const { return 1; }
 
@@ -223,9 +224,9 @@ class CAwkQuestionOperator : public CAwkOperator {
   CAwkQuestionOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_TERNARY; }
+  OpType getType() const { return OpType::TERNARY; }
 
-  Direction getDirection() const { return EVAL_R_TO_L; }
+  Direction getDirection() const { return Direction::R_TO_L; }
 
   uint getPrecedence() const { return 2; }
 
@@ -244,9 +245,9 @@ class CAwkColonOperator : public CAwkOperator {
   CAwkColonOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_TERNARY; }
+  OpType getType() const { return OpType::TERNARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 2; }
 
@@ -265,9 +266,9 @@ class CAwkLogicalOrOperator : public CAwkBinaryOperator {
   CAwkLogicalOrOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY; }
+  OpType getType() const { return OpType::BINARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 3; }
 
@@ -286,9 +287,9 @@ class CAwkLogicalAndOperator : public CAwkBinaryOperator {
   CAwkLogicalAndOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY; }
+  OpType getType() const { return OpType::BINARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 4; }
 
@@ -307,9 +308,9 @@ class CAwkInOperator : public CAwkBinaryOperator {
   CAwkInOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY; }
+  OpType getType() const { return OpType::BINARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 5; }
 
@@ -328,9 +329,9 @@ class CAwkRegExpOperator : public CAwkUnaryOperator {
   CAwkRegExpOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY; }
+  OpType getType() const { return OpType::BINARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 6; }
 
@@ -349,9 +350,9 @@ class CAwkNotRegExpOperator : public CAwkUnaryOperator {
   CAwkNotRegExpOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY; }
+  OpType getType() const { return OpType::BINARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 6; }
 
@@ -370,9 +371,9 @@ class CAwkLessOperator : public CAwkBinaryOperator {
   CAwkLessOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY; }
+  OpType getType() const { return OpType::BINARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 7; }
 
@@ -391,9 +392,9 @@ class CAwkLessEqualsOperator : public CAwkBinaryOperator {
   CAwkLessEqualsOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY; }
+  OpType getType() const { return OpType::BINARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 7; }
 
@@ -412,9 +413,9 @@ class CAwkEqualsOperator : public CAwkBinaryOperator {
   CAwkEqualsOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY; }
+  OpType getType() const { return OpType::BINARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 7; }
 
@@ -433,9 +434,9 @@ class CAwkNotEqualsOperator : public CAwkBinaryOperator {
   CAwkNotEqualsOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY; }
+  OpType getType() const { return OpType::BINARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 7; }
 
@@ -454,9 +455,9 @@ class CAwkGreaterEqualsOperator : public CAwkBinaryOperator {
   CAwkGreaterEqualsOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY; }
+  OpType getType() const { return OpType::BINARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 7; }
 
@@ -475,9 +476,9 @@ class CAwkGreaterOperator : public CAwkBinaryOperator {
   CAwkGreaterOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY; }
+  OpType getType() const { return OpType::BINARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 7; }
 
@@ -496,9 +497,9 @@ class CAwkConcatOperator : public CAwkBinaryOperator {
   CAwkConcatOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY; }
+  OpType getType() const { return OpType::BINARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 8; }
 
@@ -517,9 +518,9 @@ class CAwkPlusOperator : public CAwkBinaryOperator {
   CAwkPlusOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY; }
+  OpType getType() const { return OpType::BINARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 9; }
 
@@ -538,9 +539,9 @@ class CAwkMinusOperator : public CAwkBinaryOperator {
   CAwkMinusOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY; }
+  OpType getType() const { return OpType::BINARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 9; }
 
@@ -559,9 +560,9 @@ class CAwkTimesOperator : public CAwkBinaryOperator {
   CAwkTimesOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY; }
+  OpType getType() const { return OpType::BINARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 10; }
 
@@ -580,9 +581,9 @@ class CAwkDivideOperator : public CAwkBinaryOperator {
   CAwkDivideOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY; }
+  OpType getType() const { return OpType::BINARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 10; }
 
@@ -601,9 +602,9 @@ class CAwkModulusOperator : public CAwkBinaryOperator {
   CAwkModulusOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY; }
+  OpType getType() const { return OpType::BINARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 10; }
 
@@ -622,9 +623,9 @@ class CAwkUnaryPlusOperator : public CAwkUnaryOperator {
   CAwkUnaryPlusOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_UNARY; }
+  OpType getType() const { return OpType::UNARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 11; }
 
@@ -643,9 +644,9 @@ class CAwkUnaryMinusOperator : public CAwkUnaryOperator {
   CAwkUnaryMinusOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_UNARY; }
+  OpType getType() const { return OpType::UNARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 11; }
 
@@ -664,9 +665,9 @@ class CAwkLogicalNotOperator : public CAwkUnaryOperator {
   CAwkLogicalNotOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_UNARY; }
+  OpType getType() const { return OpType::UNARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 12; }
 
@@ -685,9 +686,9 @@ class CAwkPowerOperator : public CAwkBinaryOperator {
   CAwkPowerOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_BINARY; }
+  OpType getType() const { return OpType::BINARY; }
 
-  Direction getDirection() const { return EVAL_R_TO_L; }
+  Direction getDirection() const { return Direction::R_TO_L; }
 
   uint getPrecedence() const { return 13; }
 
@@ -706,9 +707,9 @@ class CAwkPreIncrementOperator : public CAwkOperator {
   CAwkPreIncrementOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_UNARY_ASSIGN; }
+  OpType getType() const { return OpType::UNARY_ASSIGN; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 14; }
 
@@ -727,9 +728,9 @@ class CAwkPostIncrementOperator : public CAwkOperator {
   CAwkPostIncrementOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_UNARY_ASSIGN; }
+  OpType getType() const { return OpType::UNARY_ASSIGN; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 14; }
 
@@ -748,9 +749,9 @@ class CAwkPreDecrementOperator : public CAwkOperator {
   CAwkPreDecrementOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_UNARY_ASSIGN; }
+  OpType getType() const { return OpType::UNARY_ASSIGN; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 14; }
 
@@ -769,9 +770,9 @@ class CAwkPostDecrementOperator : public CAwkOperator {
   CAwkPostDecrementOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_UNARY_ASSIGN; }
+  OpType getType() const { return OpType::UNARY_ASSIGN; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 14; }
 
@@ -790,9 +791,9 @@ class CAwkFieldOperator : public CAwkUnaryOperator {
   CAwkFieldOperator() { }
 
  public:
-  OpType getType() const { return OP_TYPE_UNARY; }
+  OpType getType() const { return OpType::UNARY; }
 
-  Direction getDirection() const { return EVAL_L_TO_R; }
+  Direction getDirection() const { return Direction::L_TO_R; }
 
   uint getPrecedence() const { return 15; }
 

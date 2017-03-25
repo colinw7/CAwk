@@ -27,7 +27,7 @@ class CAwkFileMgr {
 
 class CAwkPipe {
  public:
-  enum Type {
+  enum class Type {
     INPUT,
     OUTPUT
   };
@@ -78,7 +78,7 @@ class CAwkPipeMgr {
 
 class CAwkIFile {
  public:
-  enum Type {
+  enum class Type {
     READ_FILE    = 1,
     PIPE_COMMAND = 2
   };
@@ -116,7 +116,7 @@ class CAwkIFile {
 
 class CAwkOFile {
  public:
-  enum Type {
+  enum class Type {
     WRITE_FILE   = 1,
     APPEND_FILE  = 2,
     PIPE_COMMAND = 3
@@ -573,11 +573,11 @@ class CAwkSystemAction : public CAwkAction {
 
 class CAwkActionList {
  public:
-  enum Type {
-    PROGRAM_TYPE,
-    ROUTINE_TYPE,
-    ITERATION_TYPE,
-    SIMPLE_TYPE
+  enum class Type {
+    PROGRAM,
+    ROUTINE,
+    ITERATION,
+    SIMPLE
   };
 
  private:
