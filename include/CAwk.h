@@ -10,9 +10,9 @@
 #include <CAwkPattern.h>
 #include <CAwkOperator.h>
 
-#include <CAutoPtr.h>
 #include <CStrParse.h>
 #include <CFile.h>
+#include <memory>
 
 class CAwkPatternAction {
  private:
@@ -67,7 +67,10 @@ class CAwk {
   typedef std::vector<CAwkFunctionPtr>      FunctionList;
   typedef std::vector<CAwkPatternActionPtr> PatternActionList;
 
-  CAutoPtr<CStrParse>     parser_;
+  using ParseP = std::unique_ptr<CStrParse>;
+  using FileP  = std::unique_ptr<CFile>;
+
+  ParseP                  parser_;
   CAwkFunctionMgr         functionMgr_;
   CAwkVariableMgr         variableMgr_;
   CAwkFileMgr             fileMgr_;
@@ -79,10 +82,10 @@ class CAwk {
   std::string             output_field_separator_;
   std::string             output_record_separator_;
   std::string             real_output_format_;
-  CAutoPtr<CFile>         input_file_;
+  FileP                   input_file_;
   std::string             file_name_;
-  int                     line_num_;
-  bool                    debug_;
+  int                     line_num_ { 0 };
+  bool                    debug_ { false };
   CAwkActionBlockPtr      currentBlock_;
   CAwkActionBlockList     blockStack_;
   CAwkValuePtr            returnValue_;

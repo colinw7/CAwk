@@ -19,10 +19,9 @@ getInstance()
 }
 
 CAwk::
-CAwk() :
- input_file_(0), debug_(false)
+CAwk()
 {
-  parser_ = new CStrParse;
+  parser_ = std::make_unique<CStrParse>();
 }
 
 void
@@ -55,7 +54,7 @@ parseFile(const std::string &fileName)
   file_name_ = fileName;
   line_num_  = 0;
 
-  input_file_ = new CFile(fileName);
+  input_file_ = std::make_unique<CFile>(fileName);
 
   std::string line;
 
@@ -72,7 +71,7 @@ parseFile(const std::string &fileName)
       std::cout << *this << std::endl;
   }
 
-  input_file_ = 0;
+  input_file_ = nullptr;
 
   return rc;
 }
@@ -274,17 +273,17 @@ bool
 CAwk::
 execFile(const std::string &fileName)
 {
-  CAutoPtr<CFile> file;
+  FileP file;
 
   if (fileName == "-") // stdin
-    file = new CFile(stdin);
+    file = std::make_unique<CFile>(stdin);
   else {
     if (! CFile::exists(fileName) || ! CFile::isRegular(fileName)) {
       error("Invalid file '" + fileName + "'");
       return false;
     }
 
-    file = new CFile(fileName);
+    file = std::make_unique<CFile>(fileName);
   }
 
   getVariable("FILENAME")->getValue()->setString(fileName);
