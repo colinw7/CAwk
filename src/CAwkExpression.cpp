@@ -29,9 +29,9 @@ pushTerm(CAwkExpressionTermPtr term)
     if (value_ && op->isUnary()) {
       if ((op.cast<CAwkPostIncrementOperator>() == 0) &&
           (op.cast<CAwkPostDecrementOperator>() == 0)) {
-        CAwkOperatorPtr op = CAwkConcatOperator::create();
+        CAwkOperatorPtr op1 = CAwkConcatOperator::create();
 
-        pushTerm(op.refCast<CAwkExpressionTerm>());
+        pushTerm(op1.refCast<CAwkExpressionTerm>());
       }
     }
 

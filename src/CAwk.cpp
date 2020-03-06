@@ -1293,9 +1293,9 @@ parseExpressionList(CAwkExpressionList &expressionList)
 
     parser_->skipSpace();
 
-    char c = parser_->getCharAt();
+    char c1 = parser_->getCharAt();
 
-    if (c != ')') {
+    if (c1 != ')') {
       error("Expected ')'");
       return false;
     }
@@ -1312,9 +1312,9 @@ parseExpressionList(CAwkExpressionList &expressionList)
 
     parser_->skipSpace();
 
-    char c = parser_->getCharAt();
+    char c1 = parser_->getCharAt();
 
-    while (c == ',') {
+    while (c1 == ',') {
       parser_->skipChar();
 
       if (isNewLine())
@@ -1327,7 +1327,7 @@ parseExpressionList(CAwkExpressionList &expressionList)
 
       parser_->skipSpace();
 
-      c = parser_->getCharAt();
+      c1 = parser_->getCharAt();
     }
   }
 
@@ -1440,9 +1440,9 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
     parser_->skipSpace();
 
-    c = parser_->getCharAt();
+    char c1 = parser_->getCharAt();
 
-    if (c != ')') {
+    if (c1 != ')') {
       error("Expected ')'");
       return false;
     }
@@ -1922,9 +1922,9 @@ parseNumber(CAwkValuePtr *value)
     if (! parser_->readInteger(&integer))
       return false;
 
-    char c = parser_->getCharAt();
+    char c1 = parser_->getCharAt();
 
-    if (c == '.' || c == 'E') {
+    if (c1 == '.' || c1 == 'E') {
       parser_->setPos(save_pos);
 
       double real;
@@ -1965,9 +1965,9 @@ parseOperator(CAwkOperatorPtr *op, bool value)
   else if (c == '+') {
     parser_->skipChar();
 
-    c = parser_->getCharAt();
+    char c1 = parser_->getCharAt();
 
-    if      (c == '=') {
+    if      (c1 == '=') {
       parser_->skipChar();
 
       *op = CAwkPlusEqualsOperator::create();
@@ -1982,9 +1982,9 @@ parseOperator(CAwkOperatorPtr *op, bool value)
   else if (c == '-') {
     parser_->skipChar();
 
-    c = parser_->getCharAt();
+    char c1 = parser_->getCharAt();
 
-    if      (c == '=') {
+    if      (c1 == '=') {
       parser_->skipChar();
 
       *op = CAwkMinusEqualsOperator::create();
@@ -1999,9 +1999,9 @@ parseOperator(CAwkOperatorPtr *op, bool value)
   else if (c == '*') {
     parser_->skipChar();
 
-    c = parser_->getCharAt();
+    char c1 = parser_->getCharAt();
 
-    if      (c == '=') {
+    if      (c1 == '=') {
       parser_->skipChar();
 
       *op = CAwkTimesEqualsOperator::create();
@@ -2012,9 +2012,9 @@ parseOperator(CAwkOperatorPtr *op, bool value)
   else if (c == '/') {
     parser_->skipChar();
 
-    c = parser_->getCharAt();
+    char c1 = parser_->getCharAt();
 
-    if      (c == '=') {
+    if      (c1 == '=') {
       parser_->skipChar();
 
       *op = CAwkDivideEqualsOperator::create();
@@ -2025,9 +2025,9 @@ parseOperator(CAwkOperatorPtr *op, bool value)
   else if (c == '%') {
     parser_->skipChar();
 
-    c = parser_->getCharAt();
+    char c1 = parser_->getCharAt();
 
-    if      (c == '=') {
+    if      (c1 == '=') {
       parser_->skipChar();
 
       *op = CAwkModulusEqualsOperator::create();
@@ -2038,9 +2038,9 @@ parseOperator(CAwkOperatorPtr *op, bool value)
   else if (c == '^') {
     parser_->skipChar();
 
-    c = parser_->getCharAt();
+    char c1 = parser_->getCharAt();
 
-    if      (c == '=') {
+    if      (c1 == '=') {
       parser_->skipChar();
 
       *op = CAwkPowerEqualsOperator::create();
