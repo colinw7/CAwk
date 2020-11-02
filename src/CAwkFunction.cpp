@@ -24,7 +24,7 @@ CAwkFunctionPtr
 CAwkFunctionMgr::
 getFunction(const std::string &name) const
 {
-  FunctionMap::const_iterator p = functionMap_.find(name);
+  auto p = functionMap_.find(name);
 
   if (p != functionMap_.end())
     return p->second;
@@ -49,37 +49,37 @@ CAwkParseFunction::
 exec(const CAwkExpressionTermList &values)
 {
   if (values.size() > args_.size()) {
-    CAwkInst->error("Too many function args");
+    awk_->error("Too many function args");
     return CAwkValue::create("");
   }
 
-  CAwkActionBlockPtr block = CAwkActionBlock::create(actionList_);
+  auto block = CAwkActionBlock::create(actionList_);
 
-  CAwkInst->startBlock(block);
+  awk_->startBlock(block);
 
   // assign values to args
-  StringVectorT::const_iterator pa1 = args_.begin();
-  StringVectorT::const_iterator pa2 = args_.end();
+  auto pa1 = args_.begin();
+  auto pa2 = args_.end();
 
-  CAwkExpressionTermList::const_iterator pv1 = values.begin();
-  CAwkExpressionTermList::const_iterator pv2 = values.end  ();
+  auto pv1 = values.begin();
+  auto pv2 = values.end  ();
 
   for ( ; pa1 != pa2 && pv1 != pv2; ++pa1, ++pv1)
-    CAwkInst->addVariable(*pa1)->setValue((*pv1)->getValue());
+    awk_->addVariable(*pa1)->setValue((*pv1)->getValue());
 
   // these extra arguments are for local variables
   for ( ; pa1 != pa2; ++pa1)
-    CAwkInst->addVariable(*pa1)->setValue(CAwkValue::create(""));
+    awk_->addVariable(*pa1)->setValue(CAwkValue::create(""));
 
   // TODO: new variables are created in global scope !!
 
   // execute block
   block->exec();
 
-  CAwkValuePtr retValue = CAwkInst->getReturnValue();
+  auto retValue = awk_->getReturnValue();
 
   // TODO: old variable list
-  CAwkInst->endBlock();
+  awk_->endBlock();
 
   return retValue;
 }
@@ -103,17 +103,17 @@ CAwkValuePtr
 CAwkExprFunction::
 getValue() const
 {
-  CAwkFunctionPtr function = CAwkInst->getFunction(name_);
+  auto function = awk_->getFunction(name_);
 
   if (! function.isValid()) {
-    CAwkInst->error("No function '" + name_ + "'");
+    awk_->error("No function '" + name_ + "'");
     return CAwkValue::create("");
   }
 
   CAwkExpressionTermList values;
 
-  CAwkExpressionList::const_iterator p1 = expressionList_.begin();
-  CAwkExpressionList::const_iterator p2 = expressionList_.end  ();
+  auto p1 = expressionList_.begin();
+  auto p2 = expressionList_.end  ();
 
   for ( ; p1 != p2; ++p1)
     values.push_back((*p1).refCast<CAwkExpressionTerm>());
@@ -147,7 +147,7 @@ CAwkGsubFunction::
 exec(const CAwkExpressionTermList &values)
 {
   if (values.size() != 2 && values.size() != 3) {
-    CAwkInst->error("Invalid number of arguments");
+    awk_->error("Invalid number of arguments");
     return CAwkValue::create("");
   }
 
@@ -164,10 +164,10 @@ exec(const CAwkExpressionTermList &values)
   std::string str, ostr;
 
   if (values.size() == 3) {
-    CAwkVariableRefPtr var = CAwkInst->getVariableRef(values[2]);
+    auto var = awk_->getVariableRef(values[2]);
 
     if (! var.isValid()) {
-      CAwkInst->error("Invalid LHS");
+      awk_->error("Invalid LHS");
       return CAwkValue::create(0);
     }
 
@@ -178,11 +178,11 @@ exec(const CAwkExpressionTermList &values)
     var->setValue(CAwkValue::create(ostr));
   }
   else {
-    str = CAwkInst->getLineField(0);
+    str = awk_->getLineField(0);
 
     count = CRegExpUtil::gregsub(str, regexp, rstr, ostr);
 
-    CAwkInst->setLineField(0, ostr);
+    awk_->setLineField(0, ostr);
   }
 
   return CAwkValue::create(count);
@@ -200,7 +200,7 @@ CAwkIndexFunction::
 exec(const CAwkExpressionTermList &values)
 {
   if (values.size() != 2) {
-    CAwkInst->error("Invalid number of arguments");
+    awk_->error("Invalid number of arguments");
     return CAwkValue::create("");
   }
 
@@ -224,7 +224,7 @@ CAwkLengthFunction::
 exec(const CAwkExpressionTermList &values)
 {
   if (values.size() != 1) {
-    CAwkInst->error("Invalid number of arguments");
+    awk_->error("Invalid number of arguments");
     return CAwkValue::create("");
   }
 
@@ -247,7 +247,7 @@ CAwkMatchFunction::
 exec(const CAwkExpressionTermList &values)
 {
   if (values.size() != 2) {
-    CAwkInst->error("Invalid number of arguments");
+    awk_->error("Invalid number of arguments");
     return CAwkValue::create("");
   }
 
@@ -265,10 +265,8 @@ exec(const CAwkExpressionTermList &values)
 
     regexp.getMatchRange(&start, &end);
 
-    CAwkInst->getVariable("RSTART" )->
-      setValue(CAwkValue::create(start + 1));
-    CAwkInst->getVariable("RLENGTH")->
-      setValue(CAwkValue::create(end - start + 1));
+    awk_->getVariable("RSTART" )->setValue(CAwkValue::create(start + 1));
+    awk_->getVariable("RLENGTH")->setValue(CAwkValue::create(end - start + 1));
 
     return CAwkValue::create(start + 1);
   }
@@ -288,38 +286,55 @@ CAwkSplitFunction::
 exec(const CAwkExpressionTermList &values)
 {
   if (values.size() != 2 && values.size() != 3) {
-    CAwkInst->error("Invalid number of arguments");
+    awk_->error("Invalid number of arguments");
     return CAwkValue::create("");
   }
 
+  // string to split
   std::string str = values[0]->getValue()->getString();
 
-  CAwkVariableRefPtr var = CAwkInst->getVariableRef(values[1]);
+  // array variable to split into
+  auto var = awk_->getVariableRef(values[1]);
 
   if (! var.isValid()) {
-    CAwkInst->error("Invalid LHS");
+    awk_->error("Invalid LHS");
     return CAwkValue::create(0);
   }
 
+  // field separators
   std::string fs;
 
   if (values.size() == 3)
     fs = values[2]->getValue()->getString();
   else
-    fs = CAwkInst->getVariable("FS")->getValue()->getString();
+    fs = awk_->getVariable("FS")->getValue()->getString();
 
   if (fs == " ")
     fs = " \t";
 
+  //---
+
+  // split into fields
   StringVectorT fields;
 
   CStrUtil::addFields(str, fields, fs, /*skipEmpty*/true);
 
+  //---
+
+  // ensure variable exists (create in global scope)
+  (void) var->instantiate(/*global*/true);
+
+  //---
+
+  // strore fields in array variable
   uint numFields = fields.size();
 
   for (uint i = 0; i < numFields; ++i)
     var->setIndValue(CStrUtil::toString(i + 1), CAwkValue::create(fields[i]));
 
+  //---
+
+  // return number of fields
   return CAwkValue::create((int) numFields);
 }
 
@@ -367,7 +382,7 @@ exec(const CAwkExpressionTermList &values)
   };
 
   if (values.size() < 1) {
-    CAwkInst->error("Invalid number of arguments");
+    awk_->error("Invalid number of arguments");
     return CAwkValue::create("");
   }
 
@@ -392,7 +407,7 @@ CAwkSubFunction::
 exec(const CAwkExpressionTermList &values)
 {
   if (values.size() != 2 && values.size() != 3) {
-    CAwkInst->error("Invalid number of arguments");
+    awk_->error("Invalid number of arguments");
     return CAwkValue::create("");
   }
 
@@ -409,10 +424,10 @@ exec(const CAwkExpressionTermList &values)
   std::string str, ostr;
 
   if (values.size() == 3) {
-    CAwkVariableRefPtr var = CAwkInst->getVariableRef(values[2]);
+    auto var = awk_->getVariableRef(values[2]);
 
     if (! var.isValid()) {
-      CAwkInst->error("Invalid LHS");
+      awk_->error("Invalid LHS");
       return CAwkValue::create(0);
     }
 
@@ -424,12 +439,12 @@ exec(const CAwkExpressionTermList &values)
     var->setValue(CAwkValue::create(ostr));
   }
   else {
-    str = CAwkInst->getLineField(0);
+    str = awk_->getLineField(0);
 
     if (CRegExpUtil::regsub(str, regexp, rstr, ostr))
       ++count;
 
-    CAwkInst->setLineField(0, ostr);
+    awk_->setLineField(0, ostr);
   }
 
   return CAwkValue::create(count);
@@ -447,7 +462,7 @@ CAwkSubstrFunction::
 exec(const CAwkExpressionTermList &values)
 {
   if (values.size() != 2 && values.size() != 3) {
-    CAwkInst->error("Invalid number of arguments");
+    awk_->error("Invalid number of arguments");
     return CAwkValue::create("");
   }
 
@@ -457,10 +472,21 @@ exec(const CAwkExpressionTermList &values)
   if (values.size() == 3) {
     int len = values[2]->getValue()->getInteger();
 
-    return CAwkValue::create(str.substr(pos - 1, len));
+    auto res =  str.substr(pos - 1, len);
+
+    if (awk_->getDebug())
+      std::cout << "substr(" << str << ", " << pos - 1 << ", " << len << ") = " << res << "\n";
+
+    return CAwkValue::create(res);
   }
-  else
-    return CAwkValue::create(str.substr(pos - 1));
+  else {
+    auto res =  str.substr(pos - 1);
+
+    if (awk_->getDebug())
+      std::cout << "substr(" << str << ", " << pos - 1 << ") = " << res << "\n";
+
+    return CAwkValue::create(res);
+  }
 
   return CAwkValuePtr();
 }
@@ -477,7 +503,7 @@ CAwkAtan2Function::
 exec(const CAwkExpressionTermList &values)
 {
   if (values.size() != 2) {
-    CAwkInst->error("Invalid number of arguments");
+    awk_->error("Invalid number of arguments");
     return CAwkValue::create("");
   }
 
@@ -501,7 +527,7 @@ CAwkCosFunction::
 exec(const CAwkExpressionTermList &values)
 {
   if (values.size() != 1) {
-    CAwkInst->error("Invalid number of arguments");
+    awk_->error("Invalid number of arguments");
     return CAwkValue::create("");
   }
 
@@ -524,7 +550,7 @@ CAwkExpFunction::
 exec(const CAwkExpressionTermList &values)
 {
   if (values.size() != 1) {
-    CAwkInst->error("Invalid number of arguments");
+    awk_->error("Invalid number of arguments");
     return CAwkValue::create("");
   }
 
@@ -547,13 +573,16 @@ CAwkIntFunction::
 exec(const CAwkExpressionTermList &values)
 {
   if (values.size() != 1) {
-    CAwkInst->error("Invalid number of arguments");
+    awk_->error("Invalid number of arguments");
     return CAwkValue::create("");
   }
 
   double value = values[0]->getValue()->getReal();
 
   double result = int(value);
+
+  if (awk_->getDebug())
+    std::cout << "int(" << value << ") = " << result << "\n";
 
   return CAwkValue::create(result);
 }
@@ -570,7 +599,7 @@ CAwkLogFunction::
 exec(const CAwkExpressionTermList &values)
 {
   if (values.size() != 1) {
-    CAwkInst->error("Invalid number of arguments");
+    awk_->error("Invalid number of arguments");
     return CAwkValue::create("");
   }
 
@@ -593,7 +622,7 @@ CAwkRandFunction::
 exec(const CAwkExpressionTermList &values)
 {
   if (values.size() != 0) {
-    CAwkInst->error("Invalid number of arguments");
+    awk_->error("Invalid number of arguments");
     return CAwkValue::create("");
   }
 
@@ -614,7 +643,7 @@ CAwkSinFunction::
 exec(const CAwkExpressionTermList &values)
 {
   if (values.size() != 1) {
-    CAwkInst->error("Invalid number of arguments");
+    awk_->error("Invalid number of arguments");
     return CAwkValue::create("");
   }
 
@@ -637,7 +666,7 @@ CAwkSqrtFunction::
 exec(const CAwkExpressionTermList &values)
 {
   if (values.size() != 1) {
-    CAwkInst->error("Invalid number of arguments");
+    awk_->error("Invalid number of arguments");
     return CAwkValue::create("");
   }
 
@@ -660,7 +689,7 @@ CAwkSrandFunction::
 exec(const CAwkExpressionTermList &values)
 {
   if (values.size() != 0 && values.size() != 1) {
-    CAwkInst->error("Invalid number of arguments");
+    awk_->error("Invalid number of arguments");
     return CAwkValue::create("");
   }
 

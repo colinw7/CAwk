@@ -36,8 +36,7 @@ init(const StringVectorT &args)
   getVariable("ARGC")->setValue(CAwkValue::create((int) argc));
 
   for (uint i = 0; i < argc; ++i)
-    getVariable("ARGV")->setIndValue(CStrUtil::toString(i),
-                                     CAwkValue::create(args[i]));
+    getVariable("ARGV")->setIndValue(CStrUtil::toString(i), CAwkValue::create(args[i]));
 }
 
 bool
@@ -127,24 +126,24 @@ void
 CAwk::
 addStdFunctions()
 {
-  functionMgr_.addFunction(CAwkGsubFunction   ::create());
-  functionMgr_.addFunction(CAwkIndexFunction  ::create());
-  functionMgr_.addFunction(CAwkLengthFunction ::create());
-  functionMgr_.addFunction(CAwkMatchFunction  ::create());
-  functionMgr_.addFunction(CAwkSplitFunction  ::create());
-  functionMgr_.addFunction(CAwkSprintfFunction::create());
-  functionMgr_.addFunction(CAwkSubFunction    ::create());
-  functionMgr_.addFunction(CAwkSubstrFunction ::create());
+  functionMgr_.addFunction(CAwkGsubFunction   ::create(this));
+  functionMgr_.addFunction(CAwkIndexFunction  ::create(this));
+  functionMgr_.addFunction(CAwkLengthFunction ::create(this));
+  functionMgr_.addFunction(CAwkMatchFunction  ::create(this));
+  functionMgr_.addFunction(CAwkSplitFunction  ::create(this));
+  functionMgr_.addFunction(CAwkSprintfFunction::create(this));
+  functionMgr_.addFunction(CAwkSubFunction    ::create(this));
+  functionMgr_.addFunction(CAwkSubstrFunction ::create(this));
 
-  functionMgr_.addFunction(CAwkAtan2Function  ::create());
-  functionMgr_.addFunction(CAwkCosFunction    ::create());
-  functionMgr_.addFunction(CAwkExpFunction    ::create());
-  functionMgr_.addFunction(CAwkIntFunction    ::create());
-  functionMgr_.addFunction(CAwkLogFunction    ::create());
-  functionMgr_.addFunction(CAwkRandFunction   ::create());
-  functionMgr_.addFunction(CAwkSinFunction    ::create());
-  functionMgr_.addFunction(CAwkSqrtFunction   ::create());
-  functionMgr_.addFunction(CAwkSrandFunction  ::create());
+  functionMgr_.addFunction(CAwkAtan2Function  ::create(this));
+  functionMgr_.addFunction(CAwkCosFunction    ::create(this));
+  functionMgr_.addFunction(CAwkExpFunction    ::create(this));
+  functionMgr_.addFunction(CAwkIntFunction    ::create(this));
+  functionMgr_.addFunction(CAwkLogFunction    ::create(this));
+  functionMgr_.addFunction(CAwkRandFunction   ::create(this));
+  functionMgr_.addFunction(CAwkSinFunction    ::create(this));
+  functionMgr_.addFunction(CAwkSqrtFunction   ::create(this));
+  functionMgr_.addFunction(CAwkSrandFunction  ::create(this));
 }
 
 bool
@@ -168,21 +167,19 @@ parseProgram()
 
     parser_->skipSpace();
 
-    CAwkActionListPtr actionList =
-      CAwkActionList::create(CAwkActionList::Type::PROGRAM);
+    auto actionList = CAwkActionList::create(CAwkActionList::Type::PROGRAM);
 
     if (parser_->isChar('{')) {
       if (! parseStatementList(&actionList))
         return false;
     }
     else {
-      CAwkActionPtr action = CAwkNullAction::create();
+      auto action = CAwkNullAction::create();
 
       actionList->addAction(action);
     }
 
-    CAwkPatternActionPtr patternAction =
-      CAwkPatternAction::create(pattern, actionList);
+    auto patternAction = CAwkPatternAction::create(pattern, actionList);
 
     addPatternAction(patternAction);
   }
@@ -213,8 +210,8 @@ process()
 
   // begin
   {
-    PatternActionList::iterator p1 = patternActionList_.begin();
-    PatternActionList::iterator p2 = patternActionList_.end  ();
+    auto p1 = patternActionList_.begin();
+    auto p2 = patternActionList_.end  ();
 
     for ( ; p1 != p2; ++p1) {
       if      ((*p1)->isBegin()) {
@@ -234,8 +231,8 @@ process()
     StringVectorT indices = getVariable("ARGV")->getIndices();
 
     if (indices.size() > 1) {
-      StringVectorT::const_iterator p1 = indices.begin();
-      StringVectorT::const_iterator p2 = indices.end  ();
+      auto p1 = indices.begin();
+      auto p2 = indices.end  ();
 
       ++p1;
 
@@ -251,8 +248,8 @@ process()
 
   // end
   {
-    PatternActionList::iterator p1 = patternActionList_.begin();
-    PatternActionList::iterator p2 = patternActionList_.end  ();
+    auto p1 = patternActionList_.begin();
+    auto p2 = patternActionList_.end  ();
 
     for ( ; p1 != p2; ++p1) {
       if (! (*p1)->isEnd())
@@ -293,8 +290,8 @@ execFile(const std::string &fileName)
   while (file->readLine(line)) {
     setLine(line);
 
-    PatternActionList::iterator p1 = patternActionList_.begin();
-    PatternActionList::iterator p2 = patternActionList_.end  ();
+    auto p1 = patternActionList_.begin();
+    auto p2 = patternActionList_.end  ();
 
     for ( ; p1 != p2; ++p1) {
       if ((*p1)->isBegin() || (*p1)->isEnd())
@@ -337,7 +334,7 @@ getLineField(uint pos) const
     return line_;
 
   if (! lineFields_.isValid()) {
-    CAwk *th = const_cast<CAwk *>(this);
+    auto *th = const_cast<CAwk *>(this);
 
     th->setLineFields();
   }
@@ -377,8 +374,8 @@ setLineField(uint pos, const std::string &value)
 
   line_ = "";
 
-  StringVectorT::const_iterator p1 = fields.begin();
-  StringVectorT::const_iterator p2 = fields.end  ();
+  auto p1 = fields.begin();
+  auto p2 = fields.end  ();
 
   for (int i = 0; p1 != p2; ++p1, ++i) {
     if (i > 0)
@@ -468,13 +465,12 @@ parseFunction(CAwkFunctionPtr *function)
   parser_->skipChar();
 
   // read function body
-  CAwkActionListPtr actionList =
-    CAwkActionList::create(CAwkActionList::Type::ROUTINE);
+  auto actionList = CAwkActionList::create(CAwkActionList::Type::ROUTINE);
 
   if (! parseStatementList(&actionList))
     return false;
 
-  *function = CAwkParseFunction::create(name, args, actionList);
+  *function = CAwkParseFunction::create(this, name, args, actionList);
 
   return true;
 }
@@ -588,7 +584,7 @@ parsePattern(CAwkPatternPtr *pattern)
   parser_->skipSpace();
 
   if      (parser_->isChar('|')) {
-    CAwkPatternPtr pattern1 = *pattern;
+    auto pattern1 = *pattern;
 
     parser_->skipChar();
 
@@ -607,7 +603,7 @@ parsePattern(CAwkPatternPtr *pattern)
     *pattern = CAwkCompositeOrPattern::create(pattern1, pattern2);
   }
   else if (parser_->isChar('&')) {
-    CAwkPatternPtr pattern1 = *pattern;
+    auto pattern1 = *pattern;
 
     parser_->skipChar();
 
@@ -626,7 +622,7 @@ parsePattern(CAwkPatternPtr *pattern)
     *pattern = CAwkCompositeAndPattern::create(pattern1, pattern2);
   }
   else if (parser_->isChar(',')) {
-    CAwkPatternPtr pattern1 = *pattern;
+    auto pattern1 = *pattern;
 
     parser_->skipChar();
 
@@ -880,8 +876,7 @@ parseStatement(CAwkActionPtr *action)
     if (! parseStatement(&action1))
       return false;
 
-    *action = CAwkForAction::create(expression1, expression2,
-                                    expression3, action1);
+    *action = CAwkForAction::create(expression1, expression2, expression3, action1);
   }
   // if <statement> else <statement>
   // if <statement>
@@ -945,8 +940,7 @@ parseStatement(CAwkActionPtr *action)
   }
   // { <statement_list> }
   else if (parser_->isChar('{')) {
-    CAwkActionListPtr actionList =
-      CAwkActionList::create(CAwkActionList::Type::SIMPLE);
+    auto actionList = CAwkActionList::create(CAwkActionList::Type::SIMPLE);
 
     if (! parseStatementList(&actionList))
       return false;
@@ -1050,7 +1044,7 @@ parseSimpleStatement(CAwkActionPtr *action)
     CAwkOFilePtr file;
 
     if      (parser_->isChar('>')) {
-      CAwkOFile::Type type = CAwkOFile::Type::WRITE_FILE;
+      auto type = CAwkOFile::Type::WRITE_FILE;
 
       parser_->skipChar();
 
@@ -1094,7 +1088,7 @@ parseSimpleStatement(CAwkActionPtr *action)
     CAwkOFilePtr file;
 
     if      (parser_->isChar('>')) {
-      CAwkOFile::Type type = CAwkOFile::Type::WRITE_FILE;
+      auto type = CAwkOFile::Type::WRITE_FILE;
 
       parser_->skipChar();
 
@@ -1203,7 +1197,7 @@ parseInputOutputAction(CAwkActionPtr *action)
         return false;
     }
 
-    CAwkIFilePtr file = CAwkIFile::create(filePtr, CAwkIFile::Type::READ_FILE);
+    auto file = CAwkIFile::create(filePtr, CAwkIFile::Type::READ_FILE);
 
     *action = CAwkGetLineAction::create(var, file);
   }
@@ -1338,7 +1332,7 @@ bool
 CAwk::
 parseExpression(CAwkExpressionPtr *expression)
 {
-  CAwkExpressionPtr expression1 = CAwkExpression::create();
+  auto expression1 = CAwkExpression::create();
 
   while (true) {
     parser_->skipSpace();
@@ -1372,7 +1366,7 @@ bool
 CAwk::
 parseExpressionValue(CAwkExpressionPtr *expression)
 {
-  CAwkExpressionPtr expression1 = CAwkExpression::create();
+  auto expression1 = CAwkExpression::create();
 
   while (true) {
     parser_->skipSpace();
@@ -1458,10 +1452,11 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
       return false;
 
     // TODO: regexp value ?
-    CAwkValuePtr value = CAwkValue::create(regexp);
+    auto value = CAwkValue::create(regexp);
 
     *term = value.refCast<CAwkExpressionTerm>();
   }
+  // getline var [< file]
   else if (parser_->isWord("getline")) {
     parser_->skipChars(7);
 
@@ -1480,9 +1475,9 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
         return false;
     }
 
-    CAwkIFilePtr file = CAwkIFile::create(filePtr, CAwkIFile::Type::READ_FILE);
+    auto file = CAwkIFile::create(filePtr, CAwkIFile::Type::READ_FILE);
 
-    CAwkExpressionTermPtr expr = CAwkGetLineExpr::create(var, file);
+    auto expr = CAwkGetLineExpr::create(var, file, /*hasValue*/true);
 
     *term = expr;
   }
@@ -1491,7 +1486,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
   else if (parser_->isString("!~")) {
     parser_->skipChars(2);
 
-    CAwkOperatorPtr op = CAwkNotRegExpOperator::create();
+    auto op = CAwkNotRegExpOperator::create();
 
     *term = op.refCast<CAwkExpressionTerm>();
   }
@@ -1500,7 +1495,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
   else if (parser_->isString("~")) {
     parser_->skipChar();
 
-    CAwkOperatorPtr op = CAwkRegExpOperator::create();
+    auto op = CAwkRegExpOperator::create();
 
     *term = op.refCast<CAwkExpressionTerm>();
   }
@@ -1522,7 +1517,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
   else if (parser_->isString("||")) {
     parser_->skipChars(2);
 
-    CAwkOperatorPtr op = CAwkLogicalOrOperator::create();
+    auto op = CAwkLogicalOrOperator::create();
 
     *term = op.refCast<CAwkExpressionTerm>();
   }
@@ -1530,7 +1525,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
   else if (parser_->isString("&&")) {
     parser_->skipChars(2);
 
-    CAwkOperatorPtr op = CAwkLogicalAndOperator::create();
+    auto op = CAwkLogicalAndOperator::create();
 
     *term = op.refCast<CAwkExpressionTerm>();
   }
@@ -1538,7 +1533,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
   else if (parser_->isString("==")) {
     parser_->skipChars(2);
 
-    CAwkOperatorPtr op = CAwkEqualsOperator::create();
+    auto op = CAwkEqualsOperator::create();
 
     *term = op.refCast<CAwkExpressionTerm>();
   }
@@ -1546,7 +1541,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
   else if (parser_->isString(">=")) {
     parser_->skipChars(2);
 
-    CAwkOperatorPtr op = CAwkGreaterEqualsOperator::create();
+    auto op = CAwkGreaterEqualsOperator::create();
 
     *term = op.refCast<CAwkExpressionTerm>();
   }
@@ -1554,7 +1549,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
   else if (parser_->isString(">")) {
     parser_->skipChar();
 
-    CAwkOperatorPtr op = CAwkGreaterOperator::create();
+    auto op = CAwkGreaterOperator::create();
 
     *term = op.refCast<CAwkExpressionTerm>();
   }
@@ -1562,7 +1557,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
   else if (parser_->isString("<=")) {
     parser_->skipChars(2);
 
-    CAwkOperatorPtr op = CAwkLessEqualsOperator::create();
+    auto op = CAwkLessEqualsOperator::create();
 
     *term = op.refCast<CAwkExpressionTerm>();
   }
@@ -1570,7 +1565,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
   else if (parser_->isString("<")) {
     parser_->skipChar();
 
-    CAwkOperatorPtr op = CAwkLessOperator::create();
+    auto op = CAwkLessOperator::create();
 
     *term = op.refCast<CAwkExpressionTerm>();
   }
@@ -1578,7 +1573,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
   else if (parser_->isString("!=")) {
     parser_->skipChars(2);
 
-    CAwkOperatorPtr op = CAwkNotEqualsOperator::create();
+    auto op = CAwkNotEqualsOperator::create();
 
     *term = op.refCast<CAwkExpressionTerm>();
   }
@@ -1587,7 +1582,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
   else if (parser_->isWord("in")) {
     parser_->skipChars(2);
 
-    CAwkOperatorPtr op = CAwkInOperator::create();
+    auto op = CAwkInOperator::create();
 
     *term = op.refCast<CAwkExpressionTerm>();
   }
@@ -1662,7 +1657,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
   else if (c == '$') {
     parser_->skipChar();
 
-    CAwkOperatorPtr op = CAwkFieldOperator::create();
+    auto op = CAwkFieldOperator::create();
 
     *term = op.refCast<CAwkExpressionTerm>();
   }
@@ -1695,8 +1690,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
       parser_->skipChar();
 
-      CAwkExpressionTermPtr function =
-        CAwkExprFunction::create(name, expressionList);
+      auto function = CAwkExprFunction::create(this, name, expressionList);
 
       *term = function.refCast<CAwkExpressionTerm>();
     }
@@ -1717,13 +1711,12 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
       parser_->skipChar();
 
-      CAwkVariableRefPtr var =
-        CAwkArrayVariableRef::create(name, expressionList);
+      auto var = CAwkArrayVariableRef::create(name, expressionList);
 
       *term = var.refCast<CAwkExpressionTerm>();
     }
     else {
-      CAwkVariableRefPtr var = CAwkVariableRef::create(name);
+      auto var = CAwkVariableRef::create(name);
 
       *term = var.refCast<CAwkExpressionTerm>();
     }
@@ -1753,13 +1746,13 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
         parser_->skipSpace();
 
-        CAwkExpressionPtr filePtr = CAwkExpression::create();
+        auto filePtr = CAwkExpression::create();
 
         filePtr->pushTerm(*term);
 
-        CAwkIFilePtr file = CAwkIFile::create(filePtr, CAwkIFile::Type::PIPE_COMMAND);
+        auto file = CAwkIFile::create(filePtr, CAwkIFile::Type::PIPE_COMMAND);
 
-        *term = CAwkGetLineExpr::create(var, file);
+        *term = CAwkGetLineExpr::create(var, file, /*hasValue*/false);
       }
       else
         parser_->setPos(save_pos);
@@ -2226,7 +2219,7 @@ CAwkVariableRefPtr
 CAwk::
 getVariableRef(CAwkExpressionTermPtr term)
 {
-  CAwkExpressionTermPtr term1 = term->execute();
+  auto term1 = term->execute();
 
   if (term1.canCast<CAwkVariableRef>())
     return term1.refCast<CAwkVariableRef>();
@@ -2236,18 +2229,19 @@ getVariableRef(CAwkExpressionTermPtr term)
 
 CAwkVariablePtr
 CAwk::
-getVariable(const std::string &name, bool create) const
+getVariable(const std::string &name, bool create, bool global) const
 {
   CAwkVariablePtr variable;
 
+  // check if variable already exists in current block or any parent block
   if (currentBlock_.isValid()) {
     variable = currentBlock_->getVariable(name);
 
     if (variable.isValid())
       return variable;
 
-    CAwkActionBlockList::const_reverse_iterator p1 = blockStack_.rbegin();
-    CAwkActionBlockList::const_reverse_iterator p2 = blockStack_.rend  ();
+    auto p1 = blockStack_.rbegin();
+    auto p2 = blockStack_.rend  ();
 
     for ( ; p1 != p2; ++p1) {
       variable = (*p1)->getVariable(name);
@@ -2257,15 +2251,20 @@ getVariable(const std::string &name, bool create) const
     }
   }
 
+  //---
+
+  // get from global scope
   variable = variableMgr_.getVariable(name);
 
   if (variable.isValid())
     return variable;
 
-  if (create) {
-    CAwk *th = const_cast<CAwk *>(this);
+  //---
 
-    return th->addVariable(name);
+  if (create) {
+    auto *th = const_cast<CAwk *>(this);
+
+    return th->addVariable(name, global);
   }
 
   return CAwkVariablePtr();
@@ -2273,17 +2272,18 @@ getVariable(const std::string &name, bool create) const
 
 CAwkVariablePtr
 CAwk::
-addVariable(const std::string &name)
+addVariable(const std::string &name, bool global)
 {
-  if (currentBlock_.isValid())
+  if (! global && currentBlock_.isValid())
     return currentBlock_->addVariable(name);
-  else {
-    CAwkVariablePtr variable = CAwkVariable::create(name, "");
 
-    variableMgr_.addVariable(variable);
+  //---
 
-    return variable;
-  }
+  auto variable = CAwkVariable::create(name, "");
+
+  variableMgr_.addVariable(variable);
+
+  return variable;
 }
 
 CFile *

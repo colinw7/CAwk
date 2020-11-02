@@ -15,10 +15,6 @@
 #include <memory>
 
 class CAwkPatternAction {
- private:
-  CAwkPatternPtr    pattern_;
-  CAwkActionListPtr actionList_;
-
  public:
   static CAwkPatternActionPtr
   create(CAwkPatternPtr pattern, CAwkActionListPtr actionList) {
@@ -47,9 +43,13 @@ class CAwkPatternAction {
   friend std::ostream &operator<<(std::ostream &os, const CAwkPatternAction &th) {
     th.print(os); return os;
   }
+
+ private:
+  CAwkPatternPtr    pattern_;
+  CAwkActionListPtr actionList_;
 };
 
-//--------------
+//----
 
 #define CAwkInst CAwk::getInstance()
 
@@ -63,33 +63,6 @@ class CAwk {
     RETURN   = (1<<3),
     EXIT     = (1<<4)
   };
-
-  typedef std::vector<CAwkFunctionPtr>      FunctionList;
-  typedef std::vector<CAwkPatternActionPtr> PatternActionList;
-
-  using ParseP = std::unique_ptr<CStrParse>;
-  using FileP  = std::unique_ptr<CFile>;
-
-  ParseP                  parser_;
-  CAwkFunctionMgr         functionMgr_;
-  CAwkVariableMgr         variableMgr_;
-  CAwkFileMgr             fileMgr_;
-  CAwkPipeMgr             pipeMgr_;
-  PatternActionList       patternActionList_;
-  CAwkExecuteStack        executeStack_;
-  std::string             line_;
-  COptValT<StringVectorT> lineFields_;
-  std::string             output_field_separator_;
-  std::string             output_record_separator_;
-  std::string             real_output_format_;
-  FileP                   input_file_;
-  std::string             file_name_;
-  int                     line_num_ { 0 };
-  bool                    debug_ { false };
-  CAwkActionBlockPtr      currentBlock_;
-  CAwkActionBlockList     blockStack_;
-  CAwkValuePtr            returnValue_;
-  BlockFlags              block_flags_;
 
  public:
   static CAwk *getInstance();
@@ -183,8 +156,8 @@ class CAwk {
   CAwkValuePtr getValue(CAwkExpressionTermPtr term);
   CAwkVariableRefPtr getVariableRef(CAwkExpressionTermPtr term);
 
-  CAwkVariablePtr getVariable(const std::string &name, bool create=false) const;
-  CAwkVariablePtr addVariable(const std::string &name);
+  CAwkVariablePtr getVariable(const std::string &name, bool create=false, bool global=false) const;
+  CAwkVariablePtr addVariable(const std::string &name, bool global=false);
 
   CFile *getFile(FILE *file);
   CFile *getFile(const std::string &fileName, CFileBase::Mode mode);
@@ -217,6 +190,34 @@ class CAwk {
   bool isExitFlag   () { return (block_flags_ == BlockFlags::EXIT); }
 
   void error(const std::string &str) const;
+
+ private:
+  using FunctionList      = std::vector<CAwkFunctionPtr>;
+  using PatternActionList = std::vector<CAwkPatternActionPtr>;
+
+  using ParseP = std::unique_ptr<CStrParse>;
+  using FileP  = std::unique_ptr<CFile>;
+
+  ParseP                  parser_;
+  CAwkFunctionMgr         functionMgr_;
+  CAwkVariableMgr         variableMgr_;
+  CAwkFileMgr             fileMgr_;
+  CAwkPipeMgr             pipeMgr_;
+  PatternActionList       patternActionList_;
+  CAwkExecuteStack        executeStack_;
+  std::string             line_;
+  COptValT<StringVectorT> lineFields_;
+  std::string             output_field_separator_;
+  std::string             output_record_separator_;
+  std::string             real_output_format_;
+  FileP                   input_file_;
+  std::string             file_name_;
+  int                     line_num_ { 0 };
+  bool                    debug_    { false };
+  CAwkActionBlockPtr      currentBlock_;
+  CAwkActionBlockList     blockStack_;
+  CAwkValuePtr            returnValue_;
+  BlockFlags              block_flags_;
 };
 
 #endif

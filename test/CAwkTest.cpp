@@ -30,17 +30,19 @@ main(int argc, char **argv)
     }
   }
 
-  CAwkInst->init(args);
+  auto *awk = CAwkInst;
+
+  awk->init(args);
 
   if (debug)
-    CAwkInst->setDebug();
+    awk->setDebug();
 
   if      (progFile != "") {
-    if (! CAwkInst->parseFile(progFile))
+    if (! awk->parseFile(progFile))
       exit(1);
   }
   else if (progText != "") {
-    if (! CAwkInst->parseLine(progText))
+    if (! awk->parseLine(progText))
       exit(1);
   }
   else {
@@ -48,7 +50,7 @@ main(int argc, char **argv)
     exit(1);
   }
 
-  CAwkInst->process();
+  awk->process();
 
   return 0;
 }

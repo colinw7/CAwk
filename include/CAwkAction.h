@@ -3,15 +3,10 @@
 
 #include <CFile.h>
 
+/*
+ * Manager for opened files include special handling for stdin. stdout and stderr
+ */
 class CAwkFileMgr {
- private:
-  typedef std::list<CFile *> FileList;
-
-  FileList  files_;
-  CFile    *stdInFile_;
-  CFile    *stdOutFile_;
-  CFile    *stdErrFile_;
-
  public:
   CAwkFileMgr();
  ~CAwkFileMgr() { }
@@ -23,21 +18,25 @@ class CAwkFileMgr {
   CFile *getFile(const std::string &fileName, CFileBase::Mode mode);
 
   bool closeFile(const std::string &fileName);
+
+ private:
+  using FileList = std::list<CFile *>;
+
+  FileList  files_;
+  CFile*    stdInFile_  { nullptr };
+  CFile*    stdOutFile_ { nullptr };
+  CFile*    stdErrFile_ { nullptr };
 };
+
+//----
 
 class CAwkPipe {
  public:
   enum class Type {
+    NONE,
     INPUT,
     OUTPUT
   };
-
- private:
-  std::string  cmdName_;
-  Type         type_;
-  bool         opened_;
-  std::string  input_;
-  std::string *output_;
 
  public:
   CAwkPipe(const std::string &cmdName, Type type);
@@ -56,14 +55,18 @@ class CAwkPipe {
   }
 
   void close();
+
+ private:
+  std::string  cmdName_;
+  Type         type_   { Type::NONE };
+  bool         opened_ { false };
+  std::string  input_;
+  std::string *output_ { nullptr };
 };
 
+//----
+
 class CAwkPipeMgr {
- private:
-  typedef std::list<CAwkPipe *> PipeList;
-
-  PipeList pipes_;
-
  public:
   CAwkPipeMgr() { }
  ~CAwkPipeMgr();
@@ -74,7 +77,14 @@ class CAwkPipeMgr {
   CAwkPipe *getPipe(const std::string &cmdName, CAwkPipe::Type type);
 
   bool closePipe(const std::string &cmdName);
+
+ private:
+  using PipeList = std::list<CAwkPipe *>;
+
+  PipeList pipes_;
 };
+
+//----
 
 class CAwkIFile {
  public:
@@ -99,7 +109,7 @@ class CAwkIFile {
    file_(file), type_(type) {
   }
 
-  CAwkIFile *dup() const { return NULL; }
+  CAwkIFile *dup() const { return nullptr; }
 
  public:
   bool read(std::string &str) const;
@@ -138,7 +148,7 @@ class CAwkOFile {
    expression_(expression), type_(type) {
   }
 
-  CAwkOFile *dup() const { return NULL; }
+  CAwkOFile *dup() const { return nullptr; }
 
  public:
   void write(const std::string &str);
@@ -163,7 +173,7 @@ class CAwkAction {
 
   virtual ~CAwkAction() { }
 
-  CAwkAction *dup() const { return NULL; }
+  CAwkAction *dup() const { return nullptr; }
 
  public:
   virtual void exec() = 0;
@@ -580,12 +590,6 @@ class CAwkActionList {
     SIMPLE
   };
 
- private:
-  typedef std::vector<CAwkActionPtr> ActionList;
-
-  Type       type_;
-  ActionList actionList_;
-
  public:
   static CAwkActionListPtr create(Type type) {
     return CAwkActionListPtr(new CAwkActionList(type));
@@ -608,14 +612,17 @@ class CAwkActionList {
   friend std::ostream &operator<<(std::ostream &os, const CAwkActionList &th) {
     th.print(os); return os;
   }
+
+ private:
+  using ActionList = std::vector<CAwkActionPtr>;
+
+  Type       type_;
+  ActionList actionList_;
 };
 
-class CAwkActionBlock {
- private:
-  CAwkActionListPtr actionList_;
-  CAwkVariableMgr   variableMgr_;
-  CAwkValuePtr      returnValue_;
+//----
 
+class CAwkActionBlock {
  public:
   static CAwkActionBlockPtr
   create(CAwkActionListPtr actionList) {
@@ -625,9 +632,7 @@ class CAwkActionBlock {
  private:
   friend class CRefPtr<CAwkActionBlock>;
 
-  CAwkActionBlock(CAwkActionListPtr actionList) :
-   actionList_(actionList) {
-  }
+  CAwkActionBlock(CAwkActionListPtr actionList);
 
   CAwkActionBlock *dup() const { return new CAwkActionBlock(*this); }
 
@@ -645,6 +650,11 @@ class CAwkActionBlock {
   friend std::ostream &operator<<(std::ostream &os, const CAwkActionBlock &th) {
     th.print(os); return os;
   }
+
+ private:
+  CAwkActionListPtr actionList_;
+  CAwkVariableMgr   variableMgr_;
+  CAwkValuePtr      returnValue_;
 };
 
 #endif

@@ -2,8 +2,7 @@
 #include <CFuncs.h>
 
 CAwkExecuteStack::
-CAwkExecuteStack() :
- executeSubStack_(0)
+CAwkExecuteStack()
 {
 }
 
@@ -36,7 +35,7 @@ double
 CAwkExecuteStack::
 popReal()
 {
-  CAwkValuePtr value = popValue();
+  auto value = popValue();
 
   return value->getReal();
 }
@@ -107,8 +106,7 @@ print(std::ostream &os) const
 //------------------
 
 CAwkExecuteSubStack::
-CAwkExecuteSubStack() :
- value_(false)
+CAwkExecuteSubStack()
 {
 }
 
@@ -131,7 +129,7 @@ addTerm(CAwkExpressionTermPtr term)
 {
   if (term->hasValue()) {
     if (value_) {
-      CAwkOperatorPtr op = CAwkConcatOperator::create();
+      auto op = CAwkConcatOperator::create();
 
       addTerm(op);
     }
@@ -166,11 +164,11 @@ unstackExpression()
 
   CAwkOperatorPtr op;
 
-  CAwkExpressionTermPtr term1 = termList_.back();
+  auto term1 = termList_.back();
 
   termList_.pop_back();
 
-  CAwkExpressionTermPtr term2 = termList_.back();
+  auto term2 = termList_.back();
 
   termList_.pop_back();
 
@@ -208,7 +206,7 @@ unstackExpression()
       lastOp_ = CAwkOperatorPtr();
 
     if (! termList_.empty()) {
-      CAwkExpressionTermPtr last_term = termList_.back();
+      auto last_term = termList_.back();
 
       value_ = last_term->hasValue();
     }
@@ -216,11 +214,11 @@ unstackExpression()
       value_ = false;
   }
   else if (op->isBinary()) {
-    CAwkExpressionTermPtr term3 = termList_.back();
+    auto term3 = termList_.back();
 
     termList_.pop_back();
 
-    CAwkExpressionTermPtr lterm = term3;
+    auto lterm = term3;
 
     termList_.push_back(lterm);
     termList_.push_back(rterm);
@@ -236,7 +234,7 @@ unstackExpression()
       lastOp_ = CAwkOperatorPtr();
 
     if (! termList_.empty()) {
-      CAwkExpressionTermPtr last_term = termList_.back();
+      auto last_term = termList_.back();
 
       value_ = last_term->hasValue();
     }
@@ -245,15 +243,15 @@ unstackExpression()
   }
   else if (op->isTernary()) {
     // can only be ? or :
-    CAwkExpressionTermPtr term3 = termList_.back();
+    auto term3 = termList_.back();
 
     termList_.pop_back();
 
-    CAwkExpressionTermPtr lterm = term3;
+    auto lterm = term3;
 
-    CAwkValuePtr lvalue = CAwkInst->getValue(lterm);
+    auto lvalue = CAwkInst->getValue(lterm);
 
-    if (op.cast<CAwkQuestionOperator>() != 0) {
+    if (op.cast<CAwkQuestionOperator>() != nullptr) {
       bool flag = lvalue->getBool();
 
       if (flag)
@@ -277,7 +275,7 @@ unstackExpression()
       lastOp_ = CAwkOperatorPtr();
 
     if (! termList_.empty()) {
-      CAwkExpressionTermPtr last_term = termList_.back();
+      auto last_term = termList_.back();
 
       value_ = last_term->hasValue();
     }
@@ -294,7 +292,7 @@ CAwkVariableRefPtr
 CAwkExecuteSubStack::
 popVariableRef()
 {
-  CAwkExpressionTermPtr term = termList_.back();
+  auto term = termList_.back();
 
   termList_.pop_back();
 
@@ -308,7 +306,7 @@ CAwkValuePtr
 CAwkExecuteSubStack::
 popValue()
 {
-  CAwkExpressionTermPtr term = popTerm();
+  auto term = popTerm();
 
   return CAwkInst->getValue(term);
 }
@@ -317,7 +315,7 @@ CAwkExpressionTermPtr
 CAwkExecuteSubStack::
 popTerm()
 {
-  CAwkExpressionTermPtr term = termList_.back();
+  auto term = termList_.back();
 
   termList_.pop_back();
 

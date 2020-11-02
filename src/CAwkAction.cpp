@@ -50,7 +50,7 @@ void
 CAwkReturnAction::
 exec()
 {
-  CAwkValuePtr value = expression_->getValue();
+  auto value = expression_->getValue();
 
   CAwkInst->setReturnValue(value);
 }
@@ -120,7 +120,7 @@ void
 CAwkIfAction::
 exec()
 {
-  CAwkValuePtr value = expression_->getValue();
+  auto value = expression_->getValue();
 
   if (value->getBool())
     actionList_->exec();
@@ -151,7 +151,7 @@ void
 CAwkIfElseAction::
 exec()
 {
-  CAwkValuePtr value = expression_->getValue();
+  auto value = expression_->getValue();
 
   if (value->getBool())
     actionList1_->exec();
@@ -186,7 +186,7 @@ exec()
 {
   (void) expression1_->execute();
 
-  CAwkValuePtr value = expression2_->getValue();
+  auto value = expression2_->getValue();
 
   while (value->getBool()) {
     actionList_->exec();
@@ -236,8 +236,8 @@ exec()
 {
   StringVectorT indices = var2_->getIndices();
 
-  StringVectorT::const_iterator p1 = indices.begin();
-  StringVectorT::const_iterator p2 = indices.end  ();
+  auto p1 = indices.begin();
+  auto p2 = indices.end  ();
 
   for ( ; p1 != p2; ++p1) {
     var1_->setValue(CAwkValue::create(*p1));
@@ -281,7 +281,7 @@ void
 CAwkWhileAction::
 exec()
 {
-  CAwkValuePtr value = expression_->getValue();
+  auto value = expression_->getValue();
 
   while (value->getBool()) {
     actionList_->exec();
@@ -454,14 +454,14 @@ exec()
   if (expressionList_.empty())
     str = CAwkInst->getLineField(0);
   else {
-    CAwkExpressionList::iterator p1 = expressionList_.begin();
-    CAwkExpressionList::iterator p2 = expressionList_.end  ();
+    auto p1 = expressionList_.begin();
+    auto p2 = expressionList_.end  ();
 
     for (int i = 0; p1 != p2; ++p1, ++i) {
       if (i > 0)
         str += CAwkInst->getVariable("OFS")->getValue()->getString();
 
-      CAwkValuePtr value = (*p1)->getValue();
+      auto value = (*p1)->getValue();
 
       if (value.isValid())
         str += value->getString();
@@ -502,10 +502,10 @@ exec()
   if (expressionList_.empty())
     return;
 
-  CAwkExpressionList::iterator p1 = expressionList_.begin();
-  CAwkExpressionList::iterator p2 = expressionList_.end  ();
+  auto p1 = expressionList_.begin();
+  auto p2 = expressionList_.end  ();
 
-  CAwkValuePtr value = (*p1)->getValue();
+  auto value = (*p1)->getValue();
 
   ++p1;
 
@@ -573,7 +573,7 @@ void
 CAwkSystemAction::
 exec()
 {
-  CAwkValuePtr value = expr_->getValue();
+  auto value = expr_->getValue();
 
   (void) system(value->getString().c_str());
 
@@ -601,8 +601,8 @@ CAwkActionList::
 exec()
 {
   // TODO: stack of action lists
-  ActionList::iterator p1 = actionList_.begin();
-  ActionList::iterator p2 = actionList_.end  ();
+  auto p1 = actionList_.begin();
+  auto p2 = actionList_.end  ();
 
   for ( ; p1 != p2; ++p1) {
     if      (CAwkInst->isBreakFlag()) {
@@ -663,6 +663,12 @@ print(std::ostream &os) const
 
 //-----------
 
+CAwkActionBlock::
+CAwkActionBlock(CAwkActionListPtr actionList) :
+ actionList_(actionList)
+{
+}
+
 CAwkVariablePtr
 CAwkActionBlock::
 getVariable(const std::string &name) const
@@ -674,7 +680,7 @@ CAwkVariablePtr
 CAwkActionBlock::
 addVariable(const std::string &name)
 {
-  CAwkVariablePtr variable = CAwkVariable::create(name, "");
+  auto variable = CAwkVariable::create(name, "");
 
   variableMgr_.addVariable(variable);
 
@@ -741,8 +747,7 @@ print(std::ostream &os) const
 //---------------
 
 CAwkFileMgr::
-CAwkFileMgr() :
- stdInFile_(0), stdOutFile_(0), stdErrFile_(0)
+CAwkFileMgr()
 {
 }
 
@@ -757,15 +762,12 @@ void
 CAwkFileMgr::
 term()
 {
-  delete stdInFile_ ; stdInFile_  = 0;
-  delete stdOutFile_; stdOutFile_ = 0;
-  delete stdErrFile_; stdErrFile_ = 0;
+  delete stdInFile_ ; stdInFile_  = nullptr;
+  delete stdOutFile_; stdOutFile_ = nullptr;
+  delete stdErrFile_; stdErrFile_ = nullptr;
 
-  FileList::iterator p1 = files_.begin();
-  FileList::iterator p2 = files_.end  ();
-
-  for ( ; p1 != p2; ++p1)
-    delete *p1;
+  for (const auto &file : files_)
+    delete file;
 
   files_.clear();
 }
@@ -800,23 +802,22 @@ CFile *
 CAwkFileMgr::
 getFile(const std::string &fileName, CFileBase::Mode mode)
 {
-  CFile *file = new CFile(fileName);
+  auto *file = new CFile(fileName);
 
   std::string path = file->getPath();
 
-  FileList::iterator p1 = files_.begin();
-  FileList::iterator p2 = files_.end  ();
+  auto pf = files_.begin();
 
-  for ( ; p1 != p2; ++p1)
-    if ((*p1)->getPath() == path)
+  for ( ; pf != files_.end(); ++pf)
+    if ((*pf)->getPath() == path)
       break;
 
-  if (p1 != p2) {
+  if (pf != files_.end()) {
     delete file;
 
-    file = *p1;
+    file = *pf;
 
-    CFileBase::Mode mode1 = file->getOpenMode();
+    auto mode1 = file->getOpenMode();
 
     if (mode != mode1)
       file->open(mode);
@@ -838,12 +839,9 @@ closeFile(const std::string &fileName)
 
   std::string path = file.getPath();
 
-  FileList::iterator p1 = files_.begin();
-  FileList::iterator p2 = files_.end  ();
-
-  for ( ; p1 != p2; ++p1) {
-    if ((*p1)->getPath() == path) {
-      files_.erase(p1);
+  for (auto pf = files_.begin(); pf != files_.end(); ++pf) {
+    if ((*pf)->getPath() == path) {
+      files_.erase(pf);
       return true;
     }
   }
@@ -870,8 +868,8 @@ void
 CAwkPipeMgr::
 term()
 {
-  PipeList::iterator p1 = pipes_.begin();
-  PipeList::iterator p2 = pipes_.end  ();
+  auto p1 = pipes_.begin();
+  auto p2 = pipes_.end  ();
 
   for ( ; p1 != p2; ++p1)
     delete *p1;
@@ -883,8 +881,8 @@ CAwkPipe *
 CAwkPipeMgr::
 getPipe(const std::string &cmdName, CAwkPipe::Type type)
 {
-  PipeList::iterator p1 = pipes_.begin();
-  PipeList::iterator p2 = pipes_.end  ();
+  auto p1 = pipes_.begin();
+  auto p2 = pipes_.end  ();
 
   for ( ; p1 != p2; ++p1)
     if ((*p1)->getCmdName() == cmdName)
@@ -897,7 +895,7 @@ getPipe(const std::string &cmdName, CAwkPipe::Type type)
     pipes_.erase(p1);
   }
 
-  CAwkPipe *pipe = new CAwkPipe(cmdName, type);
+  auto *pipe = new CAwkPipe(cmdName, type);
 
   pipes_.push_back(pipe);
 
@@ -908,8 +906,8 @@ bool
 CAwkPipeMgr::
 closePipe(const std::string &cmdName)
 {
-  PipeList::iterator p1 = pipes_.begin();
-  PipeList::iterator p2 = pipes_.end  ();
+  auto p1 = pipes_.begin();
+  auto p2 = pipes_.end  ();
 
   for ( ; p1 != p2; ++p1) {
     if ((*p1)->getCmdName() == cmdName) {
@@ -972,7 +970,7 @@ CAwkIFile::
 read(std::string &str) const
 {
   if      (type_ == Type::READ_FILE) {
-    CFile *file = getFile();
+    auto *file = getFile();
 
     char buffer[256];
 
@@ -989,7 +987,7 @@ read(std::string &str) const
   else if (type_ == Type::PIPE_COMMAND) {
     std::string cmdStr = file_->getValue()->getString();
 
-    CAwkPipe *pipe = CAwkInst->getPipe(cmdStr, CAwkPipe::Type::INPUT);
+    auto *pipe = CAwkInst->getPipe(cmdStr, CAwkPipe::Type::INPUT);
 
     pipe->setOutput(&str);
 
@@ -1029,14 +1027,14 @@ CAwkOFile::
 write(const std::string &str)
 {
   if      (type_ == Type::WRITE_FILE || type_ == Type::APPEND_FILE) {
-    CFile *file = getFile();
+    auto *file = getFile();
 
     file->write(str);
   }
   else if (type_ == Type::PIPE_COMMAND) {
     std::string cmdStr = expression_->getValue()->getString();
 
-    CAwkPipe *pipe = CAwkInst->getPipe(cmdStr, CAwkPipe::Type::OUTPUT);
+    auto *pipe = CAwkInst->getPipe(cmdStr, CAwkPipe::Type::OUTPUT);
 
     pipe->addInput(str);
   }

@@ -23,6 +23,8 @@ class CAwkPattern {
   }
 };
 
+//---
+
 class CAwkNullPattern : public CAwkPattern {
  public:
   static CAwkPatternPtr create() {
@@ -38,10 +40,9 @@ class CAwkNullPattern : public CAwkPattern {
   void print(std::ostream &) const { }
 };
 
-class CAwkRegExpPattern : public CAwkPattern {
- private:
-  CRegExp regexp_;
+//---
 
+class CAwkRegExpPattern : public CAwkPattern {
  public:
   static CAwkPatternPtr create(const std::string &regexp) {
     return CAwkPatternPtr(new CAwkRegExpPattern(regexp));
@@ -57,12 +58,14 @@ class CAwkRegExpPattern : public CAwkPattern {
   bool exec();
 
   void print(std::ostream &os) const;
+
+ private:
+  CRegExp regexp_;
 };
 
-class CAwkNegatePattern : public CAwkPattern {
- private:
-  CAwkPatternPtr pattern_;
+//---
 
+class CAwkNegatePattern : public CAwkPattern {
  public:
   static CAwkPatternPtr create(CAwkPatternPtr pattern) {
     return CAwkPatternPtr(new CAwkNegatePattern(pattern));
@@ -77,7 +80,12 @@ class CAwkNegatePattern : public CAwkPattern {
   bool exec();
 
   void print(std::ostream &os) const;
+
+ private:
+  CAwkPatternPtr pattern_;
 };
+
+//---
 
 class CAwkBeginPattern : public CAwkPattern {
  public:
@@ -94,6 +102,8 @@ class CAwkBeginPattern : public CAwkPattern {
   void print(std::ostream &os) const { os << "BEGIN"; }
 };
 
+//---
+
 class CAwkEndPattern : public CAwkPattern {
  public:
   static CAwkPatternPtr create() {
@@ -109,10 +119,9 @@ class CAwkEndPattern : public CAwkPattern {
   void print(std::ostream &os) const { os << "END"; }
 };
 
-class CAwkExpressionPattern : public CAwkPattern {
- private:
-  CAwkExpressionPtr expression_;
+//---
 
+class CAwkExpressionPattern : public CAwkPattern {
  public:
   static CAwkPatternPtr create(CAwkExpressionPtr expression) {
     return CAwkPatternPtr(new CAwkExpressionPattern(expression));
@@ -127,13 +136,14 @@ class CAwkExpressionPattern : public CAwkPattern {
   bool exec();
 
   void print(std::ostream &os) const;
+
+ private:
+  CAwkExpressionPtr expression_;
 };
 
-class CAwkCompositeOrPattern : public CAwkPattern {
- private:
-  CAwkPatternPtr pattern1_;
-  CAwkPatternPtr pattern2_;
+//---
 
+class CAwkCompositeOrPattern : public CAwkPattern {
  public:
   static CAwkPatternPtr
   create(CAwkPatternPtr pattern1, CAwkPatternPtr pattern2) {
@@ -149,13 +159,15 @@ class CAwkCompositeOrPattern : public CAwkPattern {
   bool exec();
 
   void print(std::ostream &os) const;
-};
 
-class CAwkCompositeAndPattern : public CAwkPattern {
  private:
   CAwkPatternPtr pattern1_;
   CAwkPatternPtr pattern2_;
+};
 
+//---
+
+class CAwkCompositeAndPattern : public CAwkPattern {
  public:
   static CAwkPatternPtr
   create(CAwkPatternPtr pattern1, CAwkPatternPtr pattern2) {
@@ -171,7 +183,13 @@ class CAwkCompositeAndPattern : public CAwkPattern {
   bool exec();
 
   void print(std::ostream &os) const;
+
+ private:
+  CAwkPatternPtr pattern1_;
+  CAwkPatternPtr pattern2_;
 };
+
+//---
 
 class CAwkRangePattern : public CAwkPattern {
  private:
@@ -180,10 +198,6 @@ class CAwkRangePattern : public CAwkPattern {
     END_STATE,
     DONE_STATE
   };
-
-  CAwkPatternPtr pattern1_;
-  CAwkPatternPtr pattern2_;
-  State          state_;
 
  public:
   static CAwkPatternPtr
@@ -200,6 +214,11 @@ class CAwkRangePattern : public CAwkPattern {
   bool exec();
 
   void print(std::ostream &os) const;
+
+ public:
+  CAwkPatternPtr pattern1_;
+  CAwkPatternPtr pattern2_;
+  State          state_ { START_STATE };
 };
 
 #endif

@@ -8,8 +8,9 @@
 #include <map>
 #include <iostream>
 
-typedef std::vector<std::string> StringVectorT;
+using StringVectorT = std::vector<std::string>;
 
+class CAwk;
 class CAwkAction;
 class CAwkActionList;
 class CAwkActionBlock;
@@ -26,25 +27,25 @@ class CAwkValue;
 class CAwkVariable;
 class CAwkVariableRef;
 
-typedef CRefPtr<CAwkAction>         CAwkActionPtr;
-typedef CRefPtr<CAwkActionList>     CAwkActionListPtr;
-typedef CRefPtr<CAwkActionBlock>    CAwkActionBlockPtr;
-typedef CRefPtr<CAwkExpression>     CAwkExpressionPtr;
-typedef CRefPtr<CAwkExpressionTerm> CAwkExpressionTermPtr;
-typedef CRefPtr<CAwkExprFunction>   CAwkExprFunctionPtr;
-typedef CRefPtr<CAwkFunction>       CAwkFunctionPtr;
-typedef CRefPtr<CAwkIFile>          CAwkIFilePtr;
-typedef CRefPtr<CAwkOperator>       CAwkOperatorPtr;
-typedef CRefPtr<CAwkOFile>          CAwkOFilePtr;
-typedef CRefPtr<CAwkPatternAction>  CAwkPatternActionPtr;
-typedef CRefPtr<CAwkPattern>        CAwkPatternPtr;
-typedef CRefPtr<CAwkValue>          CAwkValuePtr;
-typedef CRefPtr<CAwkVariable>       CAwkVariablePtr;
-typedef CRefPtr<CAwkVariableRef>    CAwkVariableRefPtr;
+using CAwkActionPtr         = CRefPtr<CAwkAction>;
+using CAwkActionListPtr     = CRefPtr<CAwkActionList>;
+using CAwkActionBlockPtr    = CRefPtr<CAwkActionBlock>;
+using CAwkExpressionPtr     = CRefPtr<CAwkExpression>;
+using CAwkExpressionTermPtr = CRefPtr<CAwkExpressionTerm>;
+using CAwkExprFunctionPtr   = CRefPtr<CAwkExprFunction>;
+using CAwkFunctionPtr       = CRefPtr<CAwkFunction>;
+using CAwkIFilePtr          = CRefPtr<CAwkIFile>;
+using CAwkOperatorPtr       = CRefPtr<CAwkOperator>;
+using CAwkOFilePtr          = CRefPtr<CAwkOFile>;
+using CAwkPatternActionPtr  = CRefPtr<CAwkPatternAction>;
+using CAwkPatternPtr        = CRefPtr<CAwkPattern>;
+using CAwkValuePtr          = CRefPtr<CAwkValue>;
+using CAwkVariablePtr       = CRefPtr<CAwkVariable>;
+using CAwkVariableRefPtr    = CRefPtr<CAwkVariableRef>;
 
-typedef std::vector<CAwkActionBlockPtr>    CAwkActionBlockList;
-typedef std::vector<CAwkExpressionTermPtr> CAwkExpressionTermList;
-typedef std::vector<CAwkOperatorPtr>       CAwkOperatorList;
-typedef std::vector<CAwkExpressionPtr>     CAwkExpressionList;
+using CAwkActionBlockList    = std::vector<CAwkActionBlockPtr>;
+using CAwkExpressionTermList = std::vector<CAwkExpressionTermPtr>;
+using CAwkOperatorList       = std::vector<CAwkOperatorPtr>;
+using CAwkExpressionList     = std::vector<CAwkExpressionPtr>;
 
 #endif

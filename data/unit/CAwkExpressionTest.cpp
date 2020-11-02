@@ -1,4 +1,4 @@
-#include <CAwk/CAwk.h>
+#include <CAwk.h>
 
 void testExpression(const std::string &expr);
 

@@ -3,8 +3,7 @@
 #include <CReadLine.h>
 
 CAwkExpression::
-CAwkExpression() :
- value_(false)
+CAwkExpression()
 {
 }
 
@@ -12,9 +11,9 @@ CAwkValuePtr
 CAwkExpression::
 getValue() const
 {
-  CAwkExpression *th = const_cast<CAwkExpression *>(this);
+  auto *th = const_cast<CAwkExpression *>(this);
 
-  CAwkExpressionTermPtr term = th->execute();
+  auto term = th->execute();
 
   return CAwkInst->getValue(term);
 }
@@ -24,12 +23,12 @@ CAwkExpression::
 pushTerm(CAwkExpressionTermPtr term)
 {
   if      (term.canCast<CAwkOperator>()) {
-    CAwkOperatorPtr op = term.refCast<CAwkOperator>();
+    auto op = term.refCast<CAwkOperator>();
 
     if (value_ && op->isUnary()) {
-      if ((op.cast<CAwkPostIncrementOperator>() == 0) &&
-          (op.cast<CAwkPostDecrementOperator>() == 0)) {
-        CAwkOperatorPtr op1 = CAwkConcatOperator::create();
+      if ((op.cast<CAwkPostIncrementOperator>() == nullptr) &&
+          (op.cast<CAwkPostDecrementOperator>() == nullptr)) {
+        auto op1 = CAwkConcatOperator::create();
 
         pushTerm(op1.refCast<CAwkExpressionTerm>());
       }
@@ -45,12 +44,21 @@ pushTerm(CAwkExpressionTermPtr term)
   }
   else if (term->hasValue()) {
     if (value_) {
-      CAwkOperatorPtr op = CAwkConcatOperator::create();
+      auto op = CAwkConcatOperator::create();
 
       pushTerm(op.refCast<CAwkExpressionTerm>());
     }
 
     termList_.push_back(term);
+
+    value_ = true;
+  }
+  else if (term.canCast<CAwkGetLineExpr>()) {
+    auto expr = term.refCast<CAwkGetLineExpr>();
+
+    auto term1 = expr->execute();
+
+    termList_.push_back(term1);
 
     value_ = true;
   }
@@ -62,61 +70,64 @@ CAwkExpressionTermPtr
 CAwkExpression::
 execute()
 {
-  CAwkExecuteStack &executeStack = CAwkInst->getExecuteStack();
+  auto *awk = CAwkInst;
+
+  auto &executeStack = awk->getExecuteStack();
 
   executeStack.begin();
 
-  if (CAwkInst->getDebug())
+  if (awk->getDebug())
     std::cout << executeStack << std::endl;
 
-  TermList::iterator p1 = termList_.begin();
-  TermList::iterator p2 = termList_.end  ();
+  auto p1 = termList_.begin();
+  auto p2 = termList_.end  ();
 
   for ( ; p1 != p2; ++p1) {
-    CAwkExpressionTermPtr term = *p1;
+    auto term = *p1;
 
     if      (term.canCast<CAwkOperator>()) {
-      CAwkOperatorPtr op = term.refCast<CAwkOperator>();
+      auto op = term.refCast<CAwkOperator>();
 
       while (executeStack.checkUnstack(op)) {
         executeStack.unstackExpression();
 
-        if (CAwkInst->getDebug())
+        if (awk->getDebug())
           std::cout << executeStack << std::endl;
       }
 
       executeStack.addTerm(op);
     }
     else if (term.canCast<CAwkExprFunction>()) {
-      CAwkExprFunctionPtr func = term.refCast<CAwkExprFunction>();
+      auto func = term.refCast<CAwkExprFunction>();
 
-      CAwkExpressionTermPtr term1 = func->execute();
+      auto term1 = func->execute();
 
       if (term1.isValid())
         executeStack.addTerm(term1);
       else {
-        CAwkValuePtr result = CAwkValue::create("");
+        auto result = CAwkValue::create("");
 
         executeStack.addTerm(result.refCast<CAwkExpressionTerm>());
       }
     }
-    else if (term->hasValue())
+    else if (term->hasValue()) {
       executeStack.addTerm(term);
+    }
     else
       assert(false);
 
-    if (CAwkInst->getDebug())
+    if (awk->getDebug())
       std::cout << executeStack << std::endl;
   }
 
   while (executeStack.hasLastOp()) {
     executeStack.unstackExpression();
 
-    if (CAwkInst->getDebug())
+    if (awk->getDebug())
       std::cout << executeStack << std::endl;
    }
 
-  CAwkExpressionTermPtr term = executeStack.popTerm();
+  auto term = executeStack.popTerm();
 
   executeStack.end();
 
@@ -154,7 +165,13 @@ getValue() const
     line = readline.readLine();
   }
 
-  return CAwkValue::create(line);
+  auto value = CAwkValue::create(line);
+
+  if (var_.isValid()) {
+    var_->setValue(value);
+  }
+
+  return value;
 }
 
 CAwkExpressionTermPtr

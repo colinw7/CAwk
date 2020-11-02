@@ -34,7 +34,7 @@ bool
 CAwkExpressionPattern::
 exec()
 {
-  CAwkValuePtr value = expression_->getValue();
+  auto value = expression_->getValue();
 
   return value->getBool();
 }

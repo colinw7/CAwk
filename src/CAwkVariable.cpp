@@ -19,7 +19,7 @@ CAwkVariablePtr
 CAwkVariableMgr::
 getVariable(const std::string &name) const
 {
-  VariableMap::const_iterator p = variableMap_.find(name);
+  auto p = variableMap_.find(name);
 
   if (p != variableMap_.end())
     return p->second;
@@ -122,14 +122,14 @@ CAwkValuePtr
 CAwkVariable::
 getIndValue(const std::string &ind) const
 {
-  IndValueMap::const_iterator p = indValueMap_.find(ind);
+  auto p = indValueMap_.find(ind);
 
   if (p != indValueMap_.end())
     return p->second;
 
-  CAwkValuePtr value = CAwkValue::create("");
+  auto value = CAwkValue::create("");
 
-  CAwkVariable *th = const_cast<CAwkVariable *>(this);
+  auto *th = const_cast<CAwkVariable *>(this);
 
   th->indValueMap_[ind] = value;
 
@@ -149,7 +149,7 @@ void
 CAwkVariable::
 setIndValue(const std::string &ind, CAwkValuePtr value)
 {
-  IndValueMap::iterator p = indValueMap_.find(ind);
+  auto p = indValueMap_.find(ind);
 
   if (p != indValueMap_.end()) {
     p->second = value;
@@ -163,7 +163,7 @@ bool
 CAwkVariable::
 isInd(const std::string &ind) const
 {
-  IndValueMap::const_iterator p = indValueMap_.find(ind);
+  auto p = indValueMap_.find(ind);
 
   return (p != indValueMap_.end());
 }
@@ -172,7 +172,7 @@ void
 CAwkVariable::
 removeInd(const std::string &ind)
 {
-  IndValueMap::iterator p = indValueMap_.find(ind);
+  auto p = indValueMap_.find(ind);
 
   indValueMap_.erase(p);
 }
@@ -183,11 +183,8 @@ getIndices() const
 {
   StringVectorT indices;
 
-  IndValueMap::const_iterator p1 = indValueMap_.begin();
-  IndValueMap::const_iterator p2 = indValueMap_.end  ();
-
-  for ( ; p1 != p2; ++p1)
-    indices.push_back((*p1).first);
+  for (const auto &pi : indValueMap_)
+    indices.push_back(pi.first);
 
   //std::sort(indices.begin(), indices.end());
 
@@ -209,6 +206,13 @@ print(std::ostream &os) const
 }
 
 //-----------
+
+void
+CAwkVariableRef::
+instantiate(bool global)
+{
+  (void) CAwkInst->getVariable(name_, /*create*/true, global);
+}
 
 CAwkValuePtr
 CAwkVariableRef::
@@ -312,13 +316,15 @@ print(std::ostream &os) const
 
   os << "[";
 
-  CAwkExpressionList::const_iterator p1 = expressionList_.begin();
-  CAwkExpressionList::const_iterator p2 = expressionList_.end  ();
+  int i = 0;
 
-  for (int i = 0; p1 != p2; ++p1, ++i) {
-    if (i > 0) os << ",";
+  for (auto &expr : expressionList_) {
+    if (i > 0)
+      os << ",";
 
-    os << *(*p1);
+    os << *expr;
+
+    ++i;
   }
 
   os << "]";
@@ -330,13 +336,15 @@ getInd() const
 {
   std::string ind;
 
-  CAwkExpressionList::const_iterator p1 = expressionList_.begin();
-  CAwkExpressionList::const_iterator p2 = expressionList_.end  ();
+  int i = 0;
 
-  for (int i = 0; p1 != p2; ++p1, ++i) {
-    if (i > 0) ind += CAwkInst->getVariable("SUBSEP")->getValue()->getString();
+  for (auto &expr : expressionList_) {
+    if (i > 0)
+      ind += CAwkInst->getVariable("SUBSEP")->getValue()->getString();
 
-    ind += (*p1)->getValue()->getString();
+    ind += expr->getValue()->getString();
+
+    ++i;
   }
 
   return ind;

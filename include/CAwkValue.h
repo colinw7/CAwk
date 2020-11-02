@@ -4,9 +4,6 @@
 #include <CAwkTypes.h>
 
 class CAwkValue : public CAwkExpressionTerm {
- protected:
-  std::string value_;
-
  public:
   static CAwkValuePtr create(const std::string &value);
   static CAwkValuePtr create(const char *value);
@@ -69,7 +66,12 @@ class CAwkValue : public CAwkExpressionTerm {
 
     return false_str;
   }
+
+ protected:
+  std::string value_;
 };
+
+//----
 
 class CAwkNullValue : public CAwkValue {
  public:

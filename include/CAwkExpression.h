@@ -30,16 +30,9 @@ class CAwkExpressionTerm {
   }
 };
 
+//---
+
 class CAwkExpression : public CAwkExpressionTerm {
- private:
-  typedef CAwkExpressionTermList TermList;
-  typedef CAwkOperatorList       OpStack;
-
-  TermList        termList_;
-  bool            value_;
-  OpStack         opStack_;
-  CAwkOperatorPtr lastOp_;
-
  protected:
   friend class CRefPtr<CAwkExpression>;
 
@@ -54,9 +47,9 @@ class CAwkExpression : public CAwkExpressionTerm {
     return CAwkExpressionPtr(new CAwkExpression);
   }
 
-  bool hasValue() const { return true; }
+  bool hasValue() const override { return true; }
 
-  CAwkValuePtr getValue() const;
+  CAwkValuePtr getValue() const override;
 
   void pushTerm(CAwkExpressionTermPtr term);
 
@@ -64,40 +57,50 @@ class CAwkExpression : public CAwkExpressionTerm {
 
   uint numTerms() const { return termList_.size(); }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 
   friend std::ostream &operator<<(std::ostream &os, const CAwkExpression &th) {
     th.print(os); return os;
   }
+
+ private:
+  using TermList = CAwkExpressionTermList;
+  using OpStack  = CAwkOperatorList;
+
+  TermList        termList_;
+  bool            value_ { false };
+  OpStack         opStack_;
+  CAwkOperatorPtr lastOp_;
 };
 
+//---
+
 class CAwkGetLineExpr : public CAwkExpressionTerm {
+ public:
+  static CAwkExpressionTermPtr create(CAwkVariableRefPtr var, CAwkIFilePtr file, bool hasValue) {
+    return CAwkExpressionTermPtr(new CAwkGetLineExpr(var, file, hasValue));
+  }
+
+ private:
+  CAwkGetLineExpr(CAwkVariableRefPtr var, CAwkIFilePtr file, bool hasValue) :
+   var_(var), file_(file), hasValue_(hasValue) {
+  }
+
+ public:
+  bool hasValue() const override { return hasValue_; }
+
+  CAwkValuePtr getValue() const override;
+
+  CAwkExpressionTermPtr execute() override;
+
+  void print(std::ostream &os) const override;
+
  private:
   CAwkVariableRefPtr var_;
   CAwkIFilePtr       file_;
-
- public:
-  static CAwkExpressionTermPtr
-  create(CAwkVariableRefPtr var, CAwkIFilePtr file) {
-    return CAwkExpressionTermPtr(new CAwkGetLineExpr(var, file));
-  }
-
- private:
-  CAwkGetLineExpr(CAwkVariableRefPtr var,
-                  CAwkIFilePtr file) :
-   var_(var), file_(file) {
-  }
-
- public:
-  bool hasValue() const { return true; }
-
-  CAwkValuePtr getValue() const;
-
-  CAwkExpressionTermPtr execute();
-
-  void print(std::ostream &os) const;
+  bool               hasValue_ { false };
 };
 
 #endif

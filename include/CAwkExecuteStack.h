@@ -7,12 +7,6 @@ class CAwkExecuteSubStack;
 class CAwkVariableRef;
 
 class CAwkExecuteStack {
- private:
-  typedef std::vector<CAwkExecuteSubStack *> ExecuteSubStackStack;
-
-  CAwkExecuteSubStack  *executeSubStack_;
-  ExecuteSubStackStack  executeSubStackStack_;
-
  public:
   CAwkExecuteStack();
  ~CAwkExecuteStack();
@@ -44,18 +38,17 @@ class CAwkExecuteStack {
 
     return os;
   }
+
+ private:
+  using ExecuteSubStackStack = std::vector<CAwkExecuteSubStack *>;
+
+  CAwkExecuteSubStack* executeSubStack_      { nullptr };
+  ExecuteSubStackStack executeSubStackStack_;
 };
 
+//----
+
 class CAwkExecuteSubStack {
- private:
-  typedef CAwkExpressionTermList TermList;
-  typedef CAwkOperatorList       OpStack;
-
-  TermList        termList_;
-  bool            value_;
-  OpStack         opStack_;
-  CAwkOperatorPtr lastOp_;
-
  public:
   CAwkExecuteSubStack();
 
@@ -81,6 +74,15 @@ class CAwkExecuteSubStack {
 
     return os;
   }
+
+ private:
+  using TermList = CAwkExpressionTermList;
+  using OpStack  = CAwkOperatorList;
+
+  TermList        termList_;
+  bool            value_ { false };
+  OpStack         opStack_;
+  CAwkOperatorPtr lastOp_;
 };
 
 #endif

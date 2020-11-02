@@ -4,11 +4,6 @@
 #include <CAwkTypes.h>
 
 class CAwkVariableMgr {
- private:
-  typedef std::map<std::string,CAwkVariablePtr> VariableMap;
-
-  VariableMap variableMap_;
-
  public:
   CAwkVariableMgr() { }
 
@@ -18,16 +13,16 @@ class CAwkVariableMgr {
   CAwkVariablePtr getVariable(const std::string &name) const;
 
   void print(std::ostream &os) const;
+
+ private:
+  using VariableMap = std::map<std::string,CAwkVariablePtr>;
+
+  VariableMap variableMap_;
 };
 
+//----
+
 class CAwkVariable {
- private:
-  typedef std::map<std::string,CAwkValuePtr> IndValueMap;
-
-  std::string  name_;
-  CAwkValuePtr value_;
-  IndValueMap  indValueMap_;
-
  public:
   static CAwkVariablePtr create(const std::string &name, const std::string &value);
   static CAwkVariablePtr create(const std::string &name, const char *value);
@@ -70,9 +65,16 @@ class CAwkVariable {
   friend std::ostream &operator<<(std::ostream &os, const CAwkVariable &th) {
     th.print(os); return os;
   }
+
+ private:
+  using IndValueMap = std::map<std::string,CAwkValuePtr>;
+
+  std::string  name_;
+  CAwkValuePtr value_;
+  IndValueMap  indValueMap_;
 };
 
-//----------
+//----
 
 class CAwkARGCVariable {
  public:
@@ -81,12 +83,16 @@ class CAwkARGCVariable {
   }
 };
 
+//----
+
 class CAwkARGVVariable {
  public:
   static CAwkVariablePtr create() {
     return CAwkVariable::create("ARGV", "");
   }
 };
+
+//----
 
 class CAwkFILENAMEVariable {
  public:
@@ -95,12 +101,16 @@ class CAwkFILENAMEVariable {
   }
 };
 
+//----
+
 class CAwkFNRVariable {
  public:
   static CAwkVariablePtr create() {
     return CAwkVariable::create("FNR", 0);
   }
 };
+
+//----
 
 class CAwkFSVariable {
  public:
@@ -109,12 +119,16 @@ class CAwkFSVariable {
   }
 };
 
+//----
+
 class CAwkNFVariable {
  public:
   static CAwkVariablePtr create() {
     return CAwkVariable::create("NF", 0);
   }
 };
+
+//----
 
 class CAwkNRVariable {
  public:
@@ -123,12 +137,16 @@ class CAwkNRVariable {
   }
 };
 
+//----
+
 class CAwkOFMTVariable {
  public:
   static CAwkVariablePtr create() {
     return CAwkVariable::create("OFMT", "%.6g");
   }
 };
+
+//----
 
 class CAwkOFSVariable {
  public:
@@ -137,12 +155,16 @@ class CAwkOFSVariable {
   }
 };
 
+//----
+
 class CAwkORSVariable {
  public:
   static CAwkVariablePtr create() {
     return CAwkVariable::create("ORS", "\n");
   }
 };
+
+//----
 
 class CAwkRLENGTHVariable {
  public:
@@ -151,6 +173,8 @@ class CAwkRLENGTHVariable {
   }
 };
 
+//----
+
 class CAwkRSVariable {
  public:
   static CAwkVariablePtr create() {
@@ -158,12 +182,16 @@ class CAwkRSVariable {
   }
 };
 
+//----
+
 class CAwkRSTARTVariable {
  public:
   static CAwkVariablePtr create() {
     return CAwkVariable::create("RSTART", 0);
   }
 };
+
+//----
 
 class CAwkSUBSEPVariable {
  public:
@@ -177,9 +205,6 @@ class CAwkSUBSEPVariable {
 #include <CAwkExpression.h>
 
 class CAwkVariableRef : public CAwkExpressionTerm {
- private:
-  std::string name_;
-
  public:
   static CAwkVariableRefPtr create(const std::string &name) {
     return CAwkVariableRefPtr(new CAwkVariableRef(name));
@@ -199,6 +224,8 @@ class CAwkVariableRef : public CAwkExpressionTerm {
  public:
   bool hasValue() const { return true; }
 
+  void instantiate(bool global=false);
+
   virtual CAwkValuePtr getValue() const;
 
   virtual void setValue(CAwkValuePtr value);
@@ -215,12 +242,14 @@ class CAwkVariableRef : public CAwkExpressionTerm {
   virtual void print(std::ostream &os) const;
 
   virtual CAwkExpressionTermPtr execute();
+
+ private:
+  std::string name_;
 };
 
-class CAwkArrayVariableRef : public CAwkVariableRef {
- private:
-  CAwkExpressionList expressionList_;
+//---
 
+class CAwkArrayVariableRef : public CAwkVariableRef {
  public:
   static CAwkVariableRefPtr create(const std::string &name,
                                    const CAwkExpressionList &expressionList) {
@@ -243,12 +272,14 @@ class CAwkArrayVariableRef : public CAwkVariableRef {
 
  private:
   std::string getInd() const;
+
+ private:
+  CAwkExpressionList expressionList_;
 };
 
-class CAwkFieldVariableRef : public CAwkVariableRef {
- private:
-  int pos_;
+//---
 
+class CAwkFieldVariableRef : public CAwkVariableRef {
  public:
   static CAwkVariableRefPtr create(int pos) {
     return CAwkVariableRefPtr(new CAwkFieldVariableRef(pos));
@@ -267,6 +298,9 @@ class CAwkFieldVariableRef : public CAwkVariableRef {
   void print(std::ostream &os) const;
 
   CAwkExpressionTermPtr execute();
+
+ private:
+  int pos_ { 0 };
 };
 
 #endif

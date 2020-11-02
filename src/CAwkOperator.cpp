@@ -5,9 +5,9 @@ CAwkExpressionTermPtr
 CAwkAssignOperator::
 execute()
 {
-  CAwkValuePtr value = CAwkInst->getExecuteStack().popValue();
+  auto value = CAwkInst->getExecuteStack().popValue();
 
-  CAwkVariableRefPtr var = CAwkInst->getExecuteStack().popVariableRef();
+  auto var = CAwkInst->getExecuteStack().popVariableRef();
 
   if (! var.isValid()) {
     CAwkInst->error("Lhs is not a variable");
@@ -23,16 +23,16 @@ CAwkExpressionTermPtr
 CAwkPlusEqualsOperator::
 execute()
 {
-  CAwkValuePtr value2 = CAwkInst->getExecuteStack().popValue();
+  auto value2 = CAwkInst->getExecuteStack().popValue();
 
-  CAwkVariableRefPtr var = CAwkInst->getExecuteStack().popVariableRef();
+  auto var = CAwkInst->getExecuteStack().popVariableRef();
 
   if (! var.isValid()) {
     CAwkInst->error("Lhs is not a variable");
     return value2.refCast<CAwkExpressionTerm>();
   }
 
-  CAwkValuePtr value1 = var->getValue();
+  auto value1 = var->getValue();
 
   CAwkValuePtr value;
 
@@ -52,16 +52,16 @@ CAwkExpressionTermPtr
 CAwkMinusEqualsOperator::
 execute()
 {
-  CAwkValuePtr value2 = CAwkInst->getExecuteStack().popValue();
+  auto value2 = CAwkInst->getExecuteStack().popValue();
 
-  CAwkVariableRefPtr var = CAwkInst->getExecuteStack().popVariableRef();
+  auto var = CAwkInst->getExecuteStack().popVariableRef();
 
   if (! var.isValid()) {
     CAwkInst->error("Lhs is not a variable");
     return value2.refCast<CAwkExpressionTerm>();
   }
 
-  CAwkValuePtr value1 = var->getValue();
+  auto value1 = var->getValue();
 
   CAwkValuePtr value;
 
@@ -81,16 +81,16 @@ CAwkExpressionTermPtr
 CAwkTimesEqualsOperator::
 execute()
 {
-  CAwkValuePtr value2 = CAwkInst->getExecuteStack().popValue();
+  auto value2 = CAwkInst->getExecuteStack().popValue();
 
-  CAwkVariableRefPtr var = CAwkInst->getExecuteStack().popVariableRef();
+  auto var = CAwkInst->getExecuteStack().popVariableRef();
 
   if (! var.isValid()) {
     CAwkInst->error("Lhs is not a variable");
     return value2.refCast<CAwkExpressionTerm>();
   }
 
-  CAwkValuePtr value1 = var->getValue();
+  auto value1 = var->getValue();
 
   CAwkValuePtr value;
 
@@ -110,16 +110,16 @@ CAwkExpressionTermPtr
 CAwkDivideEqualsOperator::
 execute()
 {
-  CAwkValuePtr value2 = CAwkInst->getExecuteStack().popValue();
+  auto value2 = CAwkInst->getExecuteStack().popValue();
 
-  CAwkVariableRefPtr var = CAwkInst->getExecuteStack().popVariableRef();
+  auto var = CAwkInst->getExecuteStack().popVariableRef();
 
   if (! var.isValid()) {
     CAwkInst->error("Lhs is not a variable");
     return value2.refCast<CAwkExpressionTerm>();
   }
 
-  CAwkValuePtr value1 = var->getValue();
+  auto value1 = var->getValue();
 
   CAwkValuePtr value;
 
@@ -137,16 +137,16 @@ CAwkExpressionTermPtr
 CAwkModulusEqualsOperator::
 execute()
 {
-  CAwkValuePtr value2 = CAwkInst->getExecuteStack().popValue();
+  auto value2 = CAwkInst->getExecuteStack().popValue();
 
-  CAwkVariableRefPtr var = CAwkInst->getExecuteStack().popVariableRef();
+  auto var = CAwkInst->getExecuteStack().popVariableRef();
 
   if (! var.isValid()) {
     CAwkInst->error("Lhs is not a variable");
     return value2.refCast<CAwkExpressionTerm>();
   }
 
-  CAwkValuePtr value1 = var->getValue();
+  auto value1 = var->getValue();
 
   CAwkValuePtr value;
 
@@ -170,16 +170,16 @@ CAwkExpressionTermPtr
 CAwkPowerEqualsOperator::
 execute()
 {
-  CAwkValuePtr value2 = CAwkInst->getExecuteStack().popValue();
+  auto value2 = CAwkInst->getExecuteStack().popValue();
 
-  CAwkVariableRefPtr var = CAwkInst->getExecuteStack().popVariableRef();
+  auto var = CAwkInst->getExecuteStack().popVariableRef();
 
   if (! var.isValid()) {
     CAwkInst->error("Lhs is not a variable");
     return value2.refCast<CAwkExpressionTerm>();
   }
 
-  CAwkValuePtr value1 = var->getValue();
+  auto value1 = var->getValue();
 
   CAwkValuePtr value;
 
@@ -222,7 +222,7 @@ execute()
   bool bool2 = CAwkInst->getExecuteStack().popValue()->getBool();
   bool bool1 = CAwkInst->getExecuteStack().popValue()->getBool();
 
-  CAwkValuePtr result = CAwkValue::create(bool1 || bool2);
+  auto result = CAwkValue::create(bool1 || bool2);
 
   return result.refCast<CAwkExpressionTerm>();
 }
@@ -234,7 +234,7 @@ execute()
   bool bool2 = CAwkInst->getExecuteStack().popValue()->getBool();
   bool bool1 = CAwkInst->getExecuteStack().popValue()->getBool();
 
-  CAwkValuePtr result = CAwkValue::create(bool1 && bool2);
+  auto result = CAwkValue::create(bool1 && bool2);
 
   return result.refCast<CAwkExpressionTerm>();
 }
@@ -243,7 +243,7 @@ CAwkExpressionTermPtr
 CAwkInOperator::
 execute()
 {
-  CAwkVariableRefPtr var = CAwkInst->getExecuteStack().popVariableRef();
+  auto var = CAwkInst->getExecuteStack().popVariableRef();
 
   CAwkValuePtr result;
 
@@ -276,7 +276,7 @@ execute()
 
   bool match = regexp.find(value1);
 
-  CAwkValuePtr result = CAwkValue::create(match);
+  auto result = CAwkValue::create(match);
 
   return result.refCast<CAwkExpressionTerm>();
 }
@@ -294,7 +294,7 @@ execute()
 
   bool match = regexp.find(value1);
 
-  CAwkValuePtr result = CAwkValue::create(! match);
+  auto result = CAwkValue::create(! match);
 
   return result.refCast<CAwkExpressionTerm>();
 }
@@ -303,10 +303,10 @@ CAwkExpressionTermPtr
 CAwkLessOperator::
 execute()
 {
-  CAwkValuePtr value2 = CAwkInst->getExecuteStack().popValue();
-  CAwkValuePtr value1 = CAwkInst->getExecuteStack().popValue();
+  auto value2 = CAwkInst->getExecuteStack().popValue();
+  auto value1 = CAwkInst->getExecuteStack().popValue();
 
-  CAwkValuePtr result = CAwkValue::create(value1->cmp(value2) < 0);
+  auto result = CAwkValue::create(value1->cmp(value2) < 0);
 
   return result.refCast<CAwkExpressionTerm>();
 }
@@ -315,10 +315,10 @@ CAwkExpressionTermPtr
 CAwkLessEqualsOperator::
 execute()
 {
-  CAwkValuePtr value2 = CAwkInst->getExecuteStack().popValue();
-  CAwkValuePtr value1 = CAwkInst->getExecuteStack().popValue();
+  auto value2 = CAwkInst->getExecuteStack().popValue();
+  auto value1 = CAwkInst->getExecuteStack().popValue();
 
-  CAwkValuePtr result = CAwkValue::create(value1->cmp(value2) <= 0);
+  auto result = CAwkValue::create(value1->cmp(value2) <= 0);
 
   return result.refCast<CAwkExpressionTerm>();
 }
@@ -327,10 +327,10 @@ CAwkExpressionTermPtr
 CAwkEqualsOperator::
 execute()
 {
-  CAwkValuePtr value2 = CAwkInst->getExecuteStack().popValue();
-  CAwkValuePtr value1 = CAwkInst->getExecuteStack().popValue();
+  auto value2 = CAwkInst->getExecuteStack().popValue();
+  auto value1 = CAwkInst->getExecuteStack().popValue();
 
-  CAwkValuePtr result = CAwkValue::create(value1->cmp(value2) == 0);
+  auto result = CAwkValue::create(value1->cmp(value2) == 0);
 
   return result.refCast<CAwkExpressionTerm>();
 }
@@ -339,10 +339,10 @@ CAwkExpressionTermPtr
 CAwkNotEqualsOperator::
 execute()
 {
-  CAwkValuePtr value2 = CAwkInst->getExecuteStack().popValue();
-  CAwkValuePtr value1 = CAwkInst->getExecuteStack().popValue();
+  auto value2 = CAwkInst->getExecuteStack().popValue();
+  auto value1 = CAwkInst->getExecuteStack().popValue();
 
-  CAwkValuePtr result = CAwkValue::create(value1->cmp(value2) != 0);
+  auto result = CAwkValue::create(value1->cmp(value2) != 0);
 
   return result.refCast<CAwkExpressionTerm>();
 }
@@ -351,10 +351,10 @@ CAwkExpressionTermPtr
 CAwkGreaterEqualsOperator::
 execute()
 {
-  CAwkValuePtr value2 = CAwkInst->getExecuteStack().popValue();
-  CAwkValuePtr value1 = CAwkInst->getExecuteStack().popValue();
+  auto value2 = CAwkInst->getExecuteStack().popValue();
+  auto value1 = CAwkInst->getExecuteStack().popValue();
 
-  CAwkValuePtr result = CAwkValue::create(value1->cmp(value2) >= 0);
+  auto result = CAwkValue::create(value1->cmp(value2) >= 0);
 
   return result.refCast<CAwkExpressionTerm>();
 }
@@ -363,10 +363,10 @@ CAwkExpressionTermPtr
 CAwkGreaterOperator::
 execute()
 {
-  CAwkValuePtr value2 = CAwkInst->getExecuteStack().popValue();
-  CAwkValuePtr value1 = CAwkInst->getExecuteStack().popValue();
+  auto value2 = CAwkInst->getExecuteStack().popValue();
+  auto value1 = CAwkInst->getExecuteStack().popValue();
 
-  CAwkValuePtr result = CAwkValue::create(value1->cmp(value2) > 0);
+  auto result = CAwkValue::create(value1->cmp(value2) > 0);
 
   return result.refCast<CAwkExpressionTerm>();
 }
@@ -378,7 +378,7 @@ execute()
   std::string str2 = CAwkInst->getExecuteStack().popValue()->getString();
   std::string str1 = CAwkInst->getExecuteStack().popValue()->getString();
 
-  CAwkValuePtr result = CAwkValue::create(str1 + str2);
+  auto result = CAwkValue::create(str1 + str2);
 
   return result.refCast<CAwkExpressionTerm>();
 }
@@ -387,8 +387,8 @@ CAwkExpressionTermPtr
 CAwkPlusOperator::
 execute()
 {
-  CAwkValuePtr value2 = CAwkInst->getExecuteStack().popValue();
-  CAwkValuePtr value1 = CAwkInst->getExecuteStack().popValue();
+  auto value2 = CAwkInst->getExecuteStack().popValue();
+  auto value1 = CAwkInst->getExecuteStack().popValue();
 
   CAwkValuePtr result;
 
@@ -406,8 +406,8 @@ CAwkExpressionTermPtr
 CAwkMinusOperator::
 execute()
 {
-  CAwkValuePtr value2 = CAwkInst->getExecuteStack().popValue();
-  CAwkValuePtr value1 = CAwkInst->getExecuteStack().popValue();
+  auto value2 = CAwkInst->getExecuteStack().popValue();
+  auto value1 = CAwkInst->getExecuteStack().popValue();
 
   CAwkValuePtr result;
 
@@ -425,8 +425,8 @@ CAwkExpressionTermPtr
 CAwkTimesOperator::
 execute()
 {
-  CAwkValuePtr value2 = CAwkInst->getExecuteStack().popValue();
-  CAwkValuePtr value1 = CAwkInst->getExecuteStack().popValue();
+  auto value2 = CAwkInst->getExecuteStack().popValue();
+  auto value1 = CAwkInst->getExecuteStack().popValue();
 
   CAwkValuePtr result;
 
@@ -444,8 +444,8 @@ CAwkExpressionTermPtr
 CAwkDivideOperator::
 execute()
 {
-  CAwkValuePtr value2 = CAwkInst->getExecuteStack().popValue();
-  CAwkValuePtr value1 = CAwkInst->getExecuteStack().popValue();
+  auto value2 = CAwkInst->getExecuteStack().popValue();
+  auto value1 = CAwkInst->getExecuteStack().popValue();
 
   CAwkValuePtr result;
 
@@ -461,8 +461,8 @@ CAwkExpressionTermPtr
 CAwkModulusOperator::
 execute()
 {
-  CAwkValuePtr value2 = CAwkInst->getExecuteStack().popValue();
-  CAwkValuePtr value1 = CAwkInst->getExecuteStack().popValue();
+  auto value2 = CAwkInst->getExecuteStack().popValue();
+  auto value1 = CAwkInst->getExecuteStack().popValue();
 
   CAwkValuePtr result;
 
@@ -484,7 +484,7 @@ CAwkExpressionTermPtr
 CAwkUnaryPlusOperator::
 execute()
 {
-  CAwkValuePtr value = CAwkInst->getExecuteStack().popValue();
+  auto value = CAwkInst->getExecuteStack().popValue();
 
   CAwkValuePtr result;
 
@@ -502,7 +502,7 @@ CAwkExpressionTermPtr
 CAwkUnaryMinusOperator::
 execute()
 {
-  CAwkValuePtr value = CAwkInst->getExecuteStack().popValue();
+  auto value = CAwkInst->getExecuteStack().popValue();
 
   CAwkValuePtr result;
 
@@ -522,7 +522,7 @@ execute()
 {
   bool bool1 = CAwkInst->getExecuteStack().popValue()->getBool();
 
-  CAwkValuePtr result = CAwkValue::create(! bool1);
+  auto result = CAwkValue::create(! bool1);
 
   return result.refCast<CAwkExpressionTerm>();
 }
@@ -531,8 +531,8 @@ CAwkExpressionTermPtr
 CAwkPowerOperator::
 execute()
 {
-  CAwkValuePtr value2 = CAwkInst->getExecuteStack().popValue();
-  CAwkValuePtr value1 = CAwkInst->getExecuteStack().popValue();
+  auto value2 = CAwkInst->getExecuteStack().popValue();
+  auto value1 = CAwkInst->getExecuteStack().popValue();
 
   CAwkValuePtr result;
 
@@ -552,7 +552,7 @@ CAwkExpressionTermPtr
 CAwkPreIncrementOperator::
 execute()
 {
-  CAwkVariableRefPtr var = CAwkInst->getExecuteStack().popVariableRef();
+  auto var = CAwkInst->getExecuteStack().popVariableRef();
 
   CAwkValuePtr value2;
 
@@ -562,7 +562,7 @@ execute()
     return value2.refCast<CAwkExpressionTerm>();
   }
 
-  CAwkValuePtr value1 = var->getValue();
+  auto value1 = var->getValue();
 
   if      (value1->isInteger())
     value2 = CAwkValue::create(value1->getInteger() + 1);
@@ -580,7 +580,7 @@ CAwkExpressionTermPtr
 CAwkPostIncrementOperator::
 execute()
 {
-  CAwkVariableRefPtr var = CAwkInst->getExecuteStack().popVariableRef();
+  auto var = CAwkInst->getExecuteStack().popVariableRef();
 
   CAwkValuePtr value2;
 
@@ -590,7 +590,7 @@ execute()
     return value2.refCast<CAwkExpressionTerm>();
   }
 
-  CAwkValuePtr value1 = var->getValue();
+  auto value1 = var->getValue();
 
   if      (value1->isInteger()) {
     value1 = CAwkValue::create(value1->getInteger());
@@ -614,7 +614,7 @@ CAwkExpressionTermPtr
 CAwkPreDecrementOperator::
 execute()
 {
-  CAwkVariableRefPtr var = CAwkInst->getExecuteStack().popVariableRef();
+  auto var = CAwkInst->getExecuteStack().popVariableRef();
 
   CAwkValuePtr value2;
 
@@ -624,7 +624,7 @@ execute()
     return value2.refCast<CAwkExpressionTerm>();
   }
 
-  CAwkValuePtr value1 = var->getValue();
+  auto value1 = var->getValue();
 
   if      (value1->isInteger())
     value2 = CAwkValue::create(value1->getInteger() - 1);
@@ -642,7 +642,7 @@ CAwkExpressionTermPtr
 CAwkPostDecrementOperator::
 execute()
 {
-  CAwkVariableRefPtr var = CAwkInst->getExecuteStack().popVariableRef();
+  auto var = CAwkInst->getExecuteStack().popVariableRef();
 
   CAwkValuePtr value2;
 
@@ -652,7 +652,7 @@ execute()
     return value2.refCast<CAwkExpressionTerm>();
   }
 
-  CAwkValuePtr value1 = var->getValue();
+  auto value1 = var->getValue();
 
   if      (value1->isInteger()) {
     value1 = CAwkValue::create(value1->getInteger());
@@ -676,7 +676,7 @@ CAwkExpressionTermPtr
 CAwkFieldOperator::
 execute()
 {
-  CAwkValuePtr value = CAwkInst->getExecuteStack().popValue();
+  auto value = CAwkInst->getExecuteStack().popValue();
 
   CAwkVariableRefPtr result;
 

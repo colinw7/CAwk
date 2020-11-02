@@ -53,6 +53,8 @@ class CAwkOperator : public CAwkExpressionTerm {
   }
 };
 
+//---
+
 class CAwkUnaryOperator : public CAwkOperator {
  protected:
   CAwkUnaryOperator() { }
@@ -60,12 +62,16 @@ class CAwkUnaryOperator : public CAwkOperator {
   virtual ~CAwkUnaryOperator() { }
 };
 
+//---
+
 class CAwkBinaryOperator : public CAwkOperator {
  protected:
   CAwkBinaryOperator() { }
 
   virtual ~CAwkBinaryOperator() { }
 };
+
+//---
 
 class CAwkAssignOperator : public CAwkOperator {
  public:
@@ -88,6 +94,8 @@ class CAwkAssignOperator : public CAwkOperator {
   void print(std::ostream &os) const { os << "="; }
 };
 
+//---
+
 class CAwkPlusEqualsOperator : public CAwkOperator {
  public:
   static CAwkOperatorPtr create() {
@@ -108,6 +116,8 @@ class CAwkPlusEqualsOperator : public CAwkOperator {
 
   void print(std::ostream &os) const { os << "+="; }
 };
+
+//---
 
 class CAwkMinusEqualsOperator : public CAwkOperator {
  public:
@@ -130,6 +140,8 @@ class CAwkMinusEqualsOperator : public CAwkOperator {
   void print(std::ostream &os) const { os << "-="; }
 };
 
+//---
+
 class CAwkTimesEqualsOperator : public CAwkOperator {
  public:
   static CAwkOperatorPtr create() {
@@ -150,6 +162,8 @@ class CAwkTimesEqualsOperator : public CAwkOperator {
 
   void print(std::ostream &os) const { os << "*="; }
 };
+
+//---
 
 class CAwkDivideEqualsOperator : public CAwkOperator {
  public:
@@ -172,6 +186,8 @@ class CAwkDivideEqualsOperator : public CAwkOperator {
   void print(std::ostream &os) const { os << "/="; }
 };
 
+//---
+
 class CAwkModulusEqualsOperator : public CAwkOperator {
  public:
   static CAwkOperatorPtr create() {
@@ -192,6 +208,8 @@ class CAwkModulusEqualsOperator : public CAwkOperator {
 
   void print(std::ostream &os) const { os << "%="; }
 };
+
+//---
 
 class CAwkPowerEqualsOperator : public CAwkOperator {
  public:
@@ -214,6 +232,8 @@ class CAwkPowerEqualsOperator : public CAwkOperator {
   void print(std::ostream &os) const { os << "^="; }
 };
 
+//---
+
 class CAwkQuestionOperator : public CAwkOperator {
  public:
   static CAwkOperatorPtr create() {
@@ -234,6 +254,8 @@ class CAwkQuestionOperator : public CAwkOperator {
 
   void print(std::ostream &os) const { os << "?"; }
 };
+
+//---
 
 class CAwkColonOperator : public CAwkOperator {
  public:
@@ -256,6 +278,8 @@ class CAwkColonOperator : public CAwkOperator {
   void print(std::ostream &os) const { os << ":"; }
 };
 
+//---
+
 class CAwkLogicalOrOperator : public CAwkBinaryOperator {
  public:
   static CAwkOperatorPtr create() {
@@ -276,6 +300,8 @@ class CAwkLogicalOrOperator : public CAwkBinaryOperator {
 
   void print(std::ostream &os) const { os << "||"; }
 };
+
+//---
 
 class CAwkLogicalAndOperator : public CAwkBinaryOperator {
  public:
@@ -298,6 +324,8 @@ class CAwkLogicalAndOperator : public CAwkBinaryOperator {
   void print(std::ostream &os) const { os << "&&"; }
 };
 
+//---
+
 class CAwkInOperator : public CAwkBinaryOperator {
  public:
   static CAwkOperatorPtr create() {
@@ -318,6 +346,8 @@ class CAwkInOperator : public CAwkBinaryOperator {
 
   void print(std::ostream &os) const { os << "in"; }
 };
+
+//---
 
 class CAwkRegExpOperator : public CAwkUnaryOperator {
  public:
@@ -340,6 +370,8 @@ class CAwkRegExpOperator : public CAwkUnaryOperator {
   void print(std::ostream &os) const { os << "~"; }
 };
 
+//---
+
 class CAwkNotRegExpOperator : public CAwkUnaryOperator {
  public:
   static CAwkOperatorPtr create() {
@@ -360,6 +392,8 @@ class CAwkNotRegExpOperator : public CAwkUnaryOperator {
 
   void print(std::ostream &os) const { os << "!~"; }
 };
+
+//---
 
 class CAwkLessOperator : public CAwkBinaryOperator {
  public:
@@ -382,6 +416,8 @@ class CAwkLessOperator : public CAwkBinaryOperator {
   void print(std::ostream &os) const { os << "<"; }
 };
 
+//---
+
 class CAwkLessEqualsOperator : public CAwkBinaryOperator {
  public:
   static CAwkOperatorPtr create() {
@@ -402,6 +438,8 @@ class CAwkLessEqualsOperator : public CAwkBinaryOperator {
 
   void print(std::ostream &os) const { os << "<="; }
 };
+
+//---
 
 class CAwkEqualsOperator : public CAwkBinaryOperator {
  public:
@@ -424,6 +462,8 @@ class CAwkEqualsOperator : public CAwkBinaryOperator {
   void print(std::ostream &os) const { os << "=="; }
 };
 
+//---
+
 class CAwkNotEqualsOperator : public CAwkBinaryOperator {
  public:
   static CAwkOperatorPtr create() {
@@ -444,6 +484,8 @@ class CAwkNotEqualsOperator : public CAwkBinaryOperator {
 
   void print(std::ostream &os) const { os << "!="; }
 };
+
+//---
 
 class CAwkGreaterEqualsOperator : public CAwkBinaryOperator {
  public:
@@ -466,6 +508,8 @@ class CAwkGreaterEqualsOperator : public CAwkBinaryOperator {
   void print(std::ostream &os) const { os << ">="; }
 };
 
+//---
+
 class CAwkGreaterOperator : public CAwkBinaryOperator {
  public:
   static CAwkOperatorPtr create() {
@@ -486,6 +530,8 @@ class CAwkGreaterOperator : public CAwkBinaryOperator {
 
   void print(std::ostream &os) const { os << ">"; }
 };
+
+//---
 
 class CAwkConcatOperator : public CAwkBinaryOperator {
  public:
@@ -508,6 +554,8 @@ class CAwkConcatOperator : public CAwkBinaryOperator {
   void print(std::ostream &os) const { os << "@"; }
 };
 
+//---
+
 class CAwkPlusOperator : public CAwkBinaryOperator {
  public:
   static CAwkOperatorPtr create() {
@@ -528,6 +576,8 @@ class CAwkPlusOperator : public CAwkBinaryOperator {
 
   void print(std::ostream &os) const { os << "+"; }
 };
+
+//---
 
 class CAwkMinusOperator : public CAwkBinaryOperator {
  public:
@@ -550,6 +600,8 @@ class CAwkMinusOperator : public CAwkBinaryOperator {
   void print(std::ostream &os) const { os << "-"; }
 };
 
+//---
+
 class CAwkTimesOperator : public CAwkBinaryOperator {
  public:
   static CAwkOperatorPtr create() {
@@ -570,6 +622,8 @@ class CAwkTimesOperator : public CAwkBinaryOperator {
 
   void print(std::ostream &os) const { os << "*"; }
 };
+
+//---
 
 class CAwkDivideOperator : public CAwkBinaryOperator {
  public:
@@ -592,6 +646,8 @@ class CAwkDivideOperator : public CAwkBinaryOperator {
   void print(std::ostream &os) const { os << "/"; }
 };
 
+//---
+
 class CAwkModulusOperator : public CAwkBinaryOperator {
  public:
   static CAwkOperatorPtr create() {
@@ -612,6 +668,8 @@ class CAwkModulusOperator : public CAwkBinaryOperator {
 
   void print(std::ostream &os) const { os << "%"; }
 };
+
+//---
 
 class CAwkUnaryPlusOperator : public CAwkUnaryOperator {
  public:
@@ -634,6 +692,8 @@ class CAwkUnaryPlusOperator : public CAwkUnaryOperator {
   void print(std::ostream &os) const { os << "+"; }
 };
 
+//---
+
 class CAwkUnaryMinusOperator : public CAwkUnaryOperator {
  public:
   static CAwkOperatorPtr create() {
@@ -654,6 +714,8 @@ class CAwkUnaryMinusOperator : public CAwkUnaryOperator {
 
   void print(std::ostream &os) const { os << "-"; }
 };
+
+//---
 
 class CAwkLogicalNotOperator : public CAwkUnaryOperator {
  public:
@@ -676,6 +738,8 @@ class CAwkLogicalNotOperator : public CAwkUnaryOperator {
   void print(std::ostream &os) const { os << "!"; }
 };
 
+//---
+
 class CAwkPowerOperator : public CAwkBinaryOperator {
  public:
   static CAwkOperatorPtr create() {
@@ -696,6 +760,8 @@ class CAwkPowerOperator : public CAwkBinaryOperator {
 
   void print(std::ostream &os) const { os << "^"; }
 };
+
+//---
 
 class CAwkPreIncrementOperator : public CAwkOperator {
  public:
@@ -718,6 +784,8 @@ class CAwkPreIncrementOperator : public CAwkOperator {
   void print(std::ostream &os) const { os << "++"; }
 };
 
+//---
+
 class CAwkPostIncrementOperator : public CAwkOperator {
  public:
   static CAwkOperatorPtr create() {
@@ -738,6 +806,8 @@ class CAwkPostIncrementOperator : public CAwkOperator {
 
   void print(std::ostream &os) const { os << "++"; }
 };
+
+//---
 
 class CAwkPreDecrementOperator : public CAwkOperator {
  public:
@@ -760,6 +830,8 @@ class CAwkPreDecrementOperator : public CAwkOperator {
   void print(std::ostream &os) const { os << "--"; }
 };
 
+//---
+
 class CAwkPostDecrementOperator : public CAwkOperator {
  public:
   static CAwkOperatorPtr create() {
@@ -780,6 +852,8 @@ class CAwkPostDecrementOperator : public CAwkOperator {
 
   void print(std::ostream &os) const { os << "--"; }
 };
+
+//---
 
 class CAwkFieldOperator : public CAwkUnaryOperator {
  public:
