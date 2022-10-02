@@ -335,7 +335,7 @@ exec(const CAwkExpressionTermList &values)
   //---
 
   // return number of fields
-  return CAwkValue::create((int) numFields);
+  return CAwkValue::create(int(numFields));
 }
 
 void

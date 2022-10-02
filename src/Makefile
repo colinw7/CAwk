@@ -25,7 +25,7 @@ CAwkVariable.cpp \
 OBJS = $(patsubst %.cpp,$(OBJ_DIR)/%.o,$(SRC))
 
 CFLAGS = \
--std=c++14 \
+-std=c++17 \
 -I$(INC_DIR) \
 -I. \
 -I../../CCommand/include \

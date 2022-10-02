@@ -33,7 +33,7 @@ init(const StringVectorT &args)
 
   uint argc = args.size();
 
-  getVariable("ARGC")->setValue(CAwkValue::create((int) argc));
+  getVariable("ARGC")->setValue(CAwkValue::create(int(argc)));
 
   for (uint i = 0; i < argc; ++i)
     getVariable("ARGV")->setIndValue(CStrUtil::toString(i), CAwkValue::create(args[i]));
