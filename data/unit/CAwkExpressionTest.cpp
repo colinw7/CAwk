@@ -27,7 +27,7 @@ testExpression(const std::string &expr)
 
     CAwkValuePtr value = expression->execute()->getValue();
 
-    if (value.isValid())
+    if (value)
       std::cout << *value << std::endl;
   }
 }

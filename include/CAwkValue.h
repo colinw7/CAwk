@@ -12,22 +12,20 @@ class CAwkValue : public CAwkExpressionTerm {
   static CAwkValuePtr create(bool value);
 
  protected:
-  friend class CRefPtr<CAwkValue>;
-
   explicit CAwkValue(const std::string &value);
   explicit CAwkValue(const char *value);
   explicit CAwkValue(double value);
   explicit CAwkValue(int value);
   explicit CAwkValue(bool value);
 
+ public:
   virtual ~CAwkValue() { }
 
   CAwkValue *dup() const { return new CAwkValue(*this); }
 
- public:
-  bool hasValue() const { return true; }
+  bool hasValue() const override { return true; }
 
-  CAwkValuePtr getValue() const { assert(false); }
+  CAwkValuePtr getValue() const override { assert(false); }
 
   bool isReal   () const;
   bool isInteger() const;
@@ -46,9 +44,9 @@ class CAwkValue : public CAwkExpressionTerm {
 
   int cmp(CAwkValuePtr rhs) const;
 
-  CAwkExpressionTermPtr execute() { assert(false); }
+  CAwkExpressionTermPtr execute() override { assert(false); }
 
-  virtual void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 
   friend std::ostream &operator<<(std::ostream &os, const CAwkValuePtr th) {
     th->print(os); return os;
@@ -85,7 +83,7 @@ class CAwkNullValue : public CAwkValue {
   }
 
  public:
-  void print(std::ostream &os) const {
+  void print(std::ostream &os) const override {
     os << "<null>";
   }
 };

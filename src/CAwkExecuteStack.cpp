@@ -114,10 +114,10 @@ void
 CAwkExecuteSubStack::
 addTerm(CAwkOperatorPtr op)
 {
-  if (lastOp_.isValid())
+  if (lastOp_)
     opStack_.push_back(lastOp_);
 
-  termList_.push_back(op.refCast<CAwkExpressionTerm>());
+  termList_.push_back(std::static_pointer_cast<CAwkExpressionTerm>(op));
 
   lastOp_ = op;
   value_  = false;
@@ -134,7 +134,7 @@ addTerm(CAwkExpressionTermPtr term)
       addTerm(op);
     }
 
-    termList_.push_back(term.refCast<CAwkExpressionTerm>());
+    termList_.push_back(std::static_pointer_cast<CAwkExpressionTerm>(term));
 
     value_ = true;
   }
@@ -146,7 +146,7 @@ bool
 CAwkExecuteSubStack::
 checkUnstack(CAwkOperatorPtr op)
 {
-  if (lastOp_.isValid()) {
+  if (lastOp_) {
     if (lastOp_->getPrecedence() > op->getPrecedence() ||
         (lastOp_->getPrecedence() == op->getPrecedence() &&
          op->getDirection() == CAwkOperator::Direction::L_TO_R))
@@ -175,15 +175,15 @@ unstackExpression()
   if      (term1->hasValue()) {
     rterm = term1;
 
-    op = term2.refCast<CAwkOperator>();
+    op = std::static_pointer_cast<CAwkOperator>(term2);
   }
-  else if (term2.canCast<CAwkOperator>()) {
-    op = term2.refCast<CAwkOperator>();
+  else if (dynamic_cast<CAwkOperator *>(term2.get()) != nullptr) {
+    op = std::static_pointer_cast<CAwkOperator>(term2);
 
     rterm = term1;
   }
-  else if (term1.canCast<CAwkOperator>()) {
-    op = term1.refCast<CAwkOperator>();
+  else if (dynamic_cast<CAwkOperator *>(term1.get()) != nullptr) {
+    op = std::static_pointer_cast<CAwkOperator>(term1);
 
     rterm = term2;
   }
@@ -251,7 +251,7 @@ unstackExpression()
 
     auto lvalue = CAwkInst->getValue(lterm);
 
-    if (op.cast<CAwkQuestionOperator>() != nullptr) {
+    if (dynamic_cast<CAwkQuestionOperator *>(op.get()) != nullptr) {
       bool flag = lvalue->getBool();
 
       if (flag)
@@ -260,7 +260,7 @@ unstackExpression()
         result = CAwkNullValue::create();
     }
     else {
-      if (lvalue.cast<CAwkNullValue>())
+      if (dynamic_cast<CAwkNullValue *>(lvalue.get()))
         result = rterm;
       else
         result = lterm;
@@ -296,8 +296,8 @@ popVariableRef()
 
   termList_.pop_back();
 
-  if (term.canCast<CAwkVariableRef>())
-    return term.refCast<CAwkVariableRef>();
+  if (dynamic_cast<CAwkVariableRef *>(term.get()) != nullptr)
+    return std::static_pointer_cast<CAwkVariableRef>(term);
   else
     return CAwkVariableRefPtr();
 }
@@ -336,12 +336,12 @@ print(std::ostream &os) const
     os << "\"";
   }
 
-  if (lastOp_.isValid() || ! opStack_.empty()) {
+  if (lastOp_ || ! opStack_.empty()) {
     os << ", ops=\"";
 
     for_each(opStack_.begin(), opStack_.end(), CPrintSeparated<CAwkOperatorPtr>(os));
 
-    if (lastOp_.isValid()) {
+    if (lastOp_) {
       if (! opStack_.empty())
         os << " ";
 

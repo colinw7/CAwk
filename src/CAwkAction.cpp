@@ -61,7 +61,7 @@ print(std::ostream &os) const
 {
   os << "return";
 
-  if (expression_.isValid())
+  if (expression_)
     os << " " << *expression_;
 }
 
@@ -80,7 +80,7 @@ print(std::ostream &os) const
 {
   os << "exit";
 
-  if (expression_.isValid())
+  if (expression_)
     os << " " << *expression_;
 }
 
@@ -101,7 +101,7 @@ print(std::ostream &os) const
 {
   os << "delete " << *var_;
 
-  if (expression_.isValid())
+  if (expression_)
     os << "[" << *expression_ << "]";
 }
 
@@ -416,7 +416,7 @@ exec()
 {
   std::string line;
 
-  if (file_.isValid()) {
+  if (file_) {
     std::string str;
 
     file_->read(line);
@@ -436,10 +436,10 @@ print(std::ostream &os) const
 {
   os << "getline";
 
-  if (var_.isValid())
+  if (var_)
     os << " " << *var_;
 
-  if (file_.isValid())
+  if (file_)
     os << " " << *file_;
 }
 
@@ -463,14 +463,14 @@ exec()
 
       auto value = (*p1)->getValue();
 
-      if (value.isValid())
+      if (value)
         str += value->getString();
     }
   }
 
   str += CAwkInst->getVariable("ORS")->getValue()->getString();
 
-  if (file_.isValid())
+  if (file_)
     file_->write(str);
   else
     std::cout << str;
@@ -489,7 +489,7 @@ print(std::ostream &os) const
              CPrintSeparated<CAwkExpressionPtr>(os));
   }
 
-  if (file_.isValid())
+  if (file_)
     os << *file_;
 }
 
@@ -509,7 +509,7 @@ exec()
 
   ++p1;
 
-  if (! value.isValid())
+  if (! value)
     return;
 
   class PrintF : public CPrintF {
@@ -523,11 +523,11 @@ exec()
      CPrintF(format), p1_(p1), p2_(p2) {
     }
 
-    int         getInt     () const { return getValue()->getInteger(); }
-    long        getLong    () const { return getValue()->getInteger(); }
-    long        getLongLong() const { return getValue()->getInteger(); }
-    double      getDouble  () const { return getValue()->getReal   (); }
-    std::string getString  () const { return getValue()->getString (); }
+    int         getInt     () const override { return getValue()->getInteger(); }
+    long        getLong    () const override { return getValue()->getInteger(); }
+    long        getLongLong() const override { return getValue()->getInteger(); }
+    double      getDouble  () const override { return getValue()->getReal   (); }
+    std::string getString  () const override { return getValue()->getString (); }
 
     CAwkValuePtr getValue() const {
       CAwkValuePtr value;
@@ -548,7 +548,7 @@ exec()
 
   std::string str = printf.format();
 
-  if (file_.isValid())
+  if (file_)
     file_->write(str);
   else
     std::cout << str;
@@ -563,7 +563,7 @@ print(std::ostream &os) const
   for_each(expressionList_.begin(), expressionList_.end(),
            CPrintSeparated<CAwkExpressionPtr>(os));
 
-  if (file_.isValid())
+  if (file_)
     os << *file_;
 }
 
@@ -715,14 +715,14 @@ bool
 CAwkPatternAction::
 isBegin() const
 {
-  return (pattern_.canCast<CAwkBeginPattern>());
+  return (dynamic_cast<CAwkBeginPattern *>(pattern_.get()) != nullptr);
 }
 
 bool
 CAwkPatternAction::
 isEnd() const
 {
-  return (pattern_.canCast<CAwkEndPattern>());
+  return (dynamic_cast<CAwkEndPattern *>(pattern_.get()) != nullptr);
 }
 
 void
@@ -1003,7 +1003,7 @@ CFile *
 CAwkIFile::
 getFile() const
 {
-  if (file_.isValid()) {
+  if (file_) {
     std::string fileName = file_->getValue()->getString();
 
     return CAwkInst->getFile(fileName, CFileBase::Mode::READ);
@@ -1046,7 +1046,7 @@ CFile *
 CAwkOFile::
 getFile() const
 {
-  if (expression_.isValid()) {
+  if (expression_) {
     std::string fileName = expression_->getValue()->getString();
 
     if      (type_ == Type::WRITE_FILE)

@@ -105,7 +105,7 @@ getValue() const
 {
   auto function = awk_->getFunction(name_);
 
-  if (! function.isValid()) {
+  if (! function) {
     awk_->error("No function '" + name_ + "'");
     return CAwkValue::create("");
   }
@@ -116,7 +116,7 @@ getValue() const
   auto p2 = expressionList_.end  ();
 
   for ( ; p1 != p2; ++p1)
-    values.push_back((*p1).refCast<CAwkExpressionTerm>());
+    values.push_back(std::static_pointer_cast<CAwkExpressionTerm>(*p1));
 
   return function->exec(values);
 }
@@ -125,7 +125,7 @@ CAwkExpressionTermPtr
 CAwkExprFunction::
 execute()
 {
-  return getValue().refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(getValue());
 }
 
 void
@@ -166,7 +166,7 @@ exec(const CAwkExpressionTermList &values)
   if (values.size() == 3) {
     auto var = awk_->getVariableRef(values[2]);
 
-    if (! var.isValid()) {
+    if (! var) {
       awk_->error("Invalid LHS");
       return CAwkValue::create(0);
     }
@@ -296,7 +296,7 @@ exec(const CAwkExpressionTermList &values)
   // array variable to split into
   auto var = awk_->getVariableRef(values[1]);
 
-  if (! var.isValid()) {
+  if (! var) {
     awk_->error("Invalid LHS");
     return CAwkValue::create(0);
   }
@@ -359,11 +359,11 @@ exec(const CAwkExpressionTermList &values)
      CPrintF(format), values_(values), pos_(1) {
     }
 
-    int         getInt     () const { return getValue()->getInteger(); }
-    long        getLong    () const { return getValue()->getInteger(); }
-    long        getLongLong() const { return getValue()->getInteger(); }
-    double      getDouble  () const { return getValue()->getReal   (); }
-    std::string getString  () const { return getValue()->getString (); }
+    int         getInt     () const override { return getValue()->getInteger(); }
+    long        getLong    () const override { return getValue()->getInteger(); }
+    long        getLongLong() const override { return getValue()->getInteger(); }
+    double      getDouble  () const override { return getValue()->getReal   (); }
+    std::string getString  () const override { return getValue()->getString (); }
 
     CAwkValuePtr getValue() const {
       CAwkValuePtr value;
@@ -374,7 +374,7 @@ exec(const CAwkExpressionTermList &values)
         ++pos_;
       }
 
-      if (! value.isValid())
+      if (! value)
         value = CAwkValue::create("");
 
       return value;
@@ -426,7 +426,7 @@ exec(const CAwkExpressionTermList &values)
   if (values.size() == 3) {
     auto var = awk_->getVariableRef(values[2]);
 
-    if (! var.isValid()) {
+    if (! var) {
       awk_->error("Invalid LHS");
       return CAwkValue::create(0);
     }
@@ -699,7 +699,7 @@ exec(const CAwkExpressionTermList &values)
     srand(int(value));
   }
   else
-    srand(time(0));
+    srand(time(nullptr));
 
   return CAwkValue::create("");
 }

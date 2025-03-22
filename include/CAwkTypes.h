@@ -1,12 +1,13 @@
 #ifndef CAWK_TYPES_H
 #define CAWK_TYPES_H
 
-#include <CRefPtr.h>
 #include <string>
 #include <vector>
 #include <list>
 #include <map>
+#include <memory>
 #include <iostream>
+#include <cassert>
 
 using StringVectorT = std::vector<std::string>;
 
@@ -27,21 +28,21 @@ class CAwkValue;
 class CAwkVariable;
 class CAwkVariableRef;
 
-using CAwkActionPtr         = CRefPtr<CAwkAction>;
-using CAwkActionListPtr     = CRefPtr<CAwkActionList>;
-using CAwkActionBlockPtr    = CRefPtr<CAwkActionBlock>;
-using CAwkExpressionPtr     = CRefPtr<CAwkExpression>;
-using CAwkExpressionTermPtr = CRefPtr<CAwkExpressionTerm>;
-using CAwkExprFunctionPtr   = CRefPtr<CAwkExprFunction>;
-using CAwkFunctionPtr       = CRefPtr<CAwkFunction>;
-using CAwkIFilePtr          = CRefPtr<CAwkIFile>;
-using CAwkOperatorPtr       = CRefPtr<CAwkOperator>;
-using CAwkOFilePtr          = CRefPtr<CAwkOFile>;
-using CAwkPatternActionPtr  = CRefPtr<CAwkPatternAction>;
-using CAwkPatternPtr        = CRefPtr<CAwkPattern>;
-using CAwkValuePtr          = CRefPtr<CAwkValue>;
-using CAwkVariablePtr       = CRefPtr<CAwkVariable>;
-using CAwkVariableRefPtr    = CRefPtr<CAwkVariableRef>;
+using CAwkActionPtr         = std::shared_ptr<CAwkAction>;
+using CAwkActionListPtr     = std::shared_ptr<CAwkActionList>;
+using CAwkActionBlockPtr    = std::shared_ptr<CAwkActionBlock>;
+using CAwkExpressionPtr     = std::shared_ptr<CAwkExpression>;
+using CAwkExpressionTermPtr = std::shared_ptr<CAwkExpressionTerm>;
+using CAwkExprFunctionPtr   = std::shared_ptr<CAwkExprFunction>;
+using CAwkFunctionPtr       = std::shared_ptr<CAwkFunction>;
+using CAwkIFilePtr          = std::shared_ptr<CAwkIFile>;
+using CAwkOperatorPtr       = std::shared_ptr<CAwkOperator>;
+using CAwkOFilePtr          = std::shared_ptr<CAwkOFile>;
+using CAwkPatternActionPtr  = std::shared_ptr<CAwkPatternAction>;
+using CAwkPatternPtr        = std::shared_ptr<CAwkPattern>;
+using CAwkValuePtr          = std::shared_ptr<CAwkValue>;
+using CAwkVariablePtr       = std::shared_ptr<CAwkVariable>;
+using CAwkVariableRefPtr    = std::shared_ptr<CAwkVariableRef>;
 
 using CAwkActionBlockList    = std::vector<CAwkActionBlockPtr>;
 using CAwkExpressionTermList = std::vector<CAwkExpressionTermPtr>;

@@ -31,19 +31,17 @@ class CAwkVariable {
   static CAwkVariablePtr create(const std::string &name, bool value);
 
  protected:
-  friend class CRefPtr<CAwkVariable>;
-
   explicit CAwkVariable(const std::string &name, const std::string &value);
   explicit CAwkVariable(const std::string &name, const char *value);
   explicit CAwkVariable(const std::string &name, double value);
   explicit CAwkVariable(const std::string &name, int value);
   explicit CAwkVariable(const std::string &name, bool value);
 
-  virtual ~CAwkVariable() { }
-
   CAwkVariable *dup() const { return new CAwkVariable(*this); }
 
  public:
+  virtual ~CAwkVariable() { }
+
   const std::string &getName() const { return name_; }
 
   CAwkValuePtr getValue() const;
@@ -211,22 +209,20 @@ class CAwkVariableRef : public CAwkExpressionTerm {
   }
 
  protected:
-  friend class CRefPtr<CAwkVariableRef>;
-
   CAwkVariableRef(const std::string &name) :
    name_(name) {
   }
 
-  virtual ~CAwkVariableRef() { }
-
   CAwkVariableRef *dup() const { return new CAwkVariableRef(*this); }
 
  public:
-  bool hasValue() const { return true; }
+  virtual ~CAwkVariableRef();
+
+  bool hasValue() const override { return true; }
 
   void instantiate(bool global=false);
 
-  virtual CAwkValuePtr getValue() const;
+  CAwkValuePtr getValue() const override;
 
   virtual void setValue(CAwkValuePtr value);
 
@@ -239,9 +235,9 @@ class CAwkVariableRef : public CAwkExpressionTerm {
 
   StringVectorT getIndices() const;
 
-  virtual void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 
-  virtual CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
  private:
   std::string name_;
@@ -262,13 +258,13 @@ class CAwkArrayVariableRef : public CAwkVariableRef {
   }
 
  public:
-  CAwkValuePtr getValue() const;
+  CAwkValuePtr getValue() const override;
 
-  void setValue(CAwkValuePtr value);
+  void setValue(CAwkValuePtr value) override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
  private:
   std::string getInd() const;
@@ -291,13 +287,13 @@ class CAwkFieldVariableRef : public CAwkVariableRef {
   }
 
  public:
-  CAwkValuePtr getValue() const;
+  CAwkValuePtr getValue() const override;
 
-  void setValue(CAwkValuePtr value);
+  void setValue(CAwkValuePtr value) override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
  private:
   int pos_ { 0 };

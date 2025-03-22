@@ -13,6 +13,7 @@
 #include <CStrParse.h>
 #include <CFile.h>
 #include <memory>
+#include <optional>
 
 class CAwkPatternAction {
  public:
@@ -22,17 +23,15 @@ class CAwkPatternAction {
   }
 
  private:
-  friend class CRefPtr<CAwkPatternAction>;
-
   CAwkPatternAction(CAwkPatternPtr pattern, CAwkActionListPtr actionList) :
    pattern_(pattern), actionList_(actionList) {
   }
 
- ~CAwkPatternAction() { }
-
   CAwkPatternAction *dup() const { return new CAwkPatternAction(*this); }
 
  public:
+ ~CAwkPatternAction() { }
+
   bool isBegin() const;
   bool isEnd  () const;
 
@@ -69,9 +68,10 @@ class CAwk {
 
  private:
   CAwk();
- ~CAwk() { }
 
  public:
+ ~CAwk() { }
+
   void init(const StringVectorT &args);
 
   bool parseFile(const std::string &fileName);
@@ -198,26 +198,26 @@ class CAwk {
   using ParseP = std::unique_ptr<CStrParse>;
   using FileP  = std::unique_ptr<CFile>;
 
-  ParseP                  parser_;
-  CAwkFunctionMgr         functionMgr_;
-  CAwkVariableMgr         variableMgr_;
-  CAwkFileMgr             fileMgr_;
-  CAwkPipeMgr             pipeMgr_;
-  PatternActionList       patternActionList_;
-  CAwkExecuteStack        executeStack_;
-  std::string             line_;
-  COptValT<StringVectorT> lineFields_;
-  std::string             output_field_separator_;
-  std::string             output_record_separator_;
-  std::string             real_output_format_;
-  FileP                   input_file_;
-  std::string             file_name_;
-  int                     line_num_ { 0 };
-  bool                    debug_    { false };
-  CAwkActionBlockPtr      currentBlock_;
-  CAwkActionBlockList     blockStack_;
-  CAwkValuePtr            returnValue_;
-  BlockFlags              block_flags_;
+  ParseP                       parser_;
+  CAwkFunctionMgr              functionMgr_;
+  CAwkVariableMgr              variableMgr_;
+  CAwkFileMgr                  fileMgr_;
+  CAwkPipeMgr                  pipeMgr_;
+  PatternActionList            patternActionList_;
+  CAwkExecuteStack             executeStack_;
+  std::string                  line_;
+  std::optional<StringVectorT> lineFields_;
+  std::string                  output_field_separator_;
+  std::string                  output_record_separator_;
+  std::string                  real_output_format_;
+  FileP                        input_file_;
+  std::string                  file_name_;
+  int                          line_num_ { 0 };
+  bool                         debug_    { false };
+  CAwkActionBlockPtr           currentBlock_;
+  CAwkActionBlockList          blockStack_;
+  CAwkValuePtr                 returnValue_;
+  BlockFlags                   block_flags_;
 };
 
 #endif

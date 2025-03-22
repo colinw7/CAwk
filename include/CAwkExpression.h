@@ -1,22 +1,19 @@
 #ifndef CAWK_EXPRESSION_H
 #define CAWK_EXPRESSION_H
 
-#include <COptVal.h>
 #include <CAwkTypes.h>
 
 class CAwkVariableRef;
 
 class CAwkExpressionTerm {
  protected:
-  friend class CRefPtr<CAwkExpressionTerm>;
-
   CAwkExpressionTerm() { }
-
-  virtual ~CAwkExpressionTerm() { }
 
   CAwkExpressionTerm *dup() const { return NULL; }
 
  public:
+  virtual ~CAwkExpressionTerm() { }
+
   virtual void print(std::ostream &os) const = 0;
 
   virtual CAwkExpressionTermPtr execute() = 0;
@@ -34,11 +31,7 @@ class CAwkExpressionTerm {
 
 class CAwkExpression : public CAwkExpressionTerm {
  protected:
-  friend class CRefPtr<CAwkExpression>;
-
   CAwkExpression();
-
- ~CAwkExpression() { }
 
   CAwkExpression *dup() const { return new CAwkExpression(*this); }
 
@@ -46,6 +39,8 @@ class CAwkExpression : public CAwkExpressionTerm {
   static CAwkExpressionPtr create() {
     return CAwkExpressionPtr(new CAwkExpression);
   }
+
+ ~CAwkExpression();
 
   bool hasValue() const override { return true; }
 
@@ -55,7 +50,7 @@ class CAwkExpression : public CAwkExpressionTerm {
 
   bool isValue() const { return value_; }
 
-  uint numTerms() const { return termList_.size(); }
+  uint numTerms() const { return uint(termList_.size()); }
 
   CAwkExpressionTermPtr execute() override;
 

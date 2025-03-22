@@ -21,20 +21,18 @@ class CAwkOperator : public CAwkExpressionTerm {
   };
 
  protected:
-  friend class CRefPtr<CAwkOperator>;
-
   CAwkOperator() { }
-
-  virtual ~CAwkOperator() { }
 
   CAwkOperator *dup() const { return NULL; }
 
  public:
-  bool hasValue() const { return false; }
+  virtual ~CAwkOperator() { }
 
-  CAwkValuePtr getValue() const { return CAwkValuePtr(); }
+  bool hasValue() const override { return false; }
 
-  virtual void print(std::ostream &os) const = 0;
+  CAwkValuePtr getValue() const override { return CAwkValuePtr(); }
+
+  void print(std::ostream &os) const override = 0;
 
   virtual OpType getType() const = 0;
 
@@ -46,7 +44,7 @@ class CAwkOperator : public CAwkExpressionTerm {
 
   virtual uint getPrecedence() const = 0;
 
-  virtual CAwkExpressionTermPtr execute() = 0;
+  CAwkExpressionTermPtr execute() override = 0;
 
   friend std::ostream &operator<<(std::ostream &os, const CAwkOperator &th) {
     th.print(os); return os;
@@ -59,6 +57,7 @@ class CAwkUnaryOperator : public CAwkOperator {
  protected:
   CAwkUnaryOperator() { }
 
+ public:
   virtual ~CAwkUnaryOperator() { }
 };
 
@@ -68,6 +67,7 @@ class CAwkBinaryOperator : public CAwkOperator {
  protected:
   CAwkBinaryOperator() { }
 
+ public:
   virtual ~CAwkBinaryOperator() { }
 };
 
@@ -83,15 +83,15 @@ class CAwkAssignOperator : public CAwkOperator {
   CAwkAssignOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY_ASSIGN; }
+  OpType getType() const override { return OpType::BINARY_ASSIGN; }
 
-  Direction getDirection() const { return Direction::R_TO_L; }
+  Direction getDirection() const override { return Direction::R_TO_L; }
 
-  uint getPrecedence() const { return 1; }
+  uint getPrecedence() const override { return 1; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "="; }
+  void print(std::ostream &os) const override { os << "="; }
 };
 
 //---
@@ -106,15 +106,15 @@ class CAwkPlusEqualsOperator : public CAwkOperator {
   CAwkPlusEqualsOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY_ASSIGN; }
+  OpType getType() const override { return OpType::BINARY_ASSIGN; }
 
-  Direction getDirection() const { return Direction::R_TO_L; }
+  Direction getDirection() const override { return Direction::R_TO_L; }
 
-  uint getPrecedence() const { return 1; }
+  uint getPrecedence() const override { return 1; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "+="; }
+  void print(std::ostream &os) const override { os << "+="; }
 };
 
 //---
@@ -129,15 +129,15 @@ class CAwkMinusEqualsOperator : public CAwkOperator {
   CAwkMinusEqualsOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY_ASSIGN; }
+  OpType getType() const override { return OpType::BINARY_ASSIGN; }
 
-  Direction getDirection() const { return Direction::R_TO_L; }
+  Direction getDirection() const override { return Direction::R_TO_L; }
 
-  uint getPrecedence() const { return 1; }
+  uint getPrecedence() const override { return 1; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "-="; }
+  void print(std::ostream &os) const override { os << "-="; }
 };
 
 //---
@@ -152,15 +152,15 @@ class CAwkTimesEqualsOperator : public CAwkOperator {
   CAwkTimesEqualsOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY_ASSIGN; }
+  OpType getType() const override { return OpType::BINARY_ASSIGN; }
 
-  Direction getDirection() const { return Direction::R_TO_L; }
+  Direction getDirection() const override { return Direction::R_TO_L; }
 
-  uint getPrecedence() const { return 1; }
+  uint getPrecedence() const override { return 1; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "*="; }
+  void print(std::ostream &os) const override { os << "*="; }
 };
 
 //---
@@ -175,15 +175,15 @@ class CAwkDivideEqualsOperator : public CAwkOperator {
   CAwkDivideEqualsOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY_ASSIGN; }
+  OpType getType() const override { return OpType::BINARY_ASSIGN; }
 
-  Direction getDirection() const { return Direction::R_TO_L; }
+  Direction getDirection() const override { return Direction::R_TO_L; }
 
-  uint getPrecedence() const { return 1; }
+  uint getPrecedence() const override { return 1; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "/="; }
+  void print(std::ostream &os) const override { os << "/="; }
 };
 
 //---
@@ -198,15 +198,15 @@ class CAwkModulusEqualsOperator : public CAwkOperator {
   CAwkModulusEqualsOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY_ASSIGN; }
+  OpType getType() const override { return OpType::BINARY_ASSIGN; }
 
-  Direction getDirection() const { return Direction::R_TO_L; }
+  Direction getDirection() const override { return Direction::R_TO_L; }
 
-  uint getPrecedence() const { return 1; }
+  uint getPrecedence() const override { return 1; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "%="; }
+  void print(std::ostream &os) const override { os << "%="; }
 };
 
 //---
@@ -221,15 +221,15 @@ class CAwkPowerEqualsOperator : public CAwkOperator {
   CAwkPowerEqualsOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY_ASSIGN; }
+  OpType getType() const override { return OpType::BINARY_ASSIGN; }
 
-  Direction getDirection() const { return Direction::R_TO_L; }
+  Direction getDirection() const override { return Direction::R_TO_L; }
 
-  uint getPrecedence() const { return 1; }
+  uint getPrecedence() const override { return 1; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "^="; }
+  void print(std::ostream &os) const override { os << "^="; }
 };
 
 //---
@@ -244,15 +244,15 @@ class CAwkQuestionOperator : public CAwkOperator {
   CAwkQuestionOperator() { }
 
  public:
-  OpType getType() const { return OpType::TERNARY; }
+  OpType getType() const override { return OpType::TERNARY; }
 
-  Direction getDirection() const { return Direction::R_TO_L; }
+  Direction getDirection() const override { return Direction::R_TO_L; }
 
-  uint getPrecedence() const { return 2; }
+  uint getPrecedence() const override { return 2; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "?"; }
+  void print(std::ostream &os) const override { os << "?"; }
 };
 
 //---
@@ -267,15 +267,15 @@ class CAwkColonOperator : public CAwkOperator {
   CAwkColonOperator() { }
 
  public:
-  OpType getType() const { return OpType::TERNARY; }
+  OpType getType() const override { return OpType::TERNARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 2; }
+  uint getPrecedence() const override { return 2; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << ":"; }
+  void print(std::ostream &os) const override { os << ":"; }
 };
 
 //---
@@ -290,15 +290,15 @@ class CAwkLogicalOrOperator : public CAwkBinaryOperator {
   CAwkLogicalOrOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY; }
+  OpType getType() const override { return OpType::BINARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 3; }
+  uint getPrecedence() const override { return 3; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "||"; }
+  void print(std::ostream &os) const override { os << "||"; }
 };
 
 //---
@@ -313,15 +313,15 @@ class CAwkLogicalAndOperator : public CAwkBinaryOperator {
   CAwkLogicalAndOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY; }
+  OpType getType() const override { return OpType::BINARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 4; }
+  uint getPrecedence() const override { return 4; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "&&"; }
+  void print(std::ostream &os) const override { os << "&&"; }
 };
 
 //---
@@ -336,15 +336,15 @@ class CAwkInOperator : public CAwkBinaryOperator {
   CAwkInOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY; }
+  OpType getType() const override { return OpType::BINARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 5; }
+  uint getPrecedence() const override { return 5; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "in"; }
+  void print(std::ostream &os) const override { os << "in"; }
 };
 
 //---
@@ -359,15 +359,15 @@ class CAwkRegExpOperator : public CAwkUnaryOperator {
   CAwkRegExpOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY; }
+  OpType getType() const override { return OpType::BINARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 6; }
+  uint getPrecedence() const override { return 6; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "~"; }
+  void print(std::ostream &os) const override { os << "~"; }
 };
 
 //---
@@ -382,15 +382,15 @@ class CAwkNotRegExpOperator : public CAwkUnaryOperator {
   CAwkNotRegExpOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY; }
+  OpType getType() const override { return OpType::BINARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 6; }
+  uint getPrecedence() const override { return 6; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "!~"; }
+  void print(std::ostream &os) const override { os << "!~"; }
 };
 
 //---
@@ -405,15 +405,15 @@ class CAwkLessOperator : public CAwkBinaryOperator {
   CAwkLessOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY; }
+  OpType getType() const override { return OpType::BINARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 7; }
+  uint getPrecedence() const override { return 7; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "<"; }
+  void print(std::ostream &os) const override { os << "<"; }
 };
 
 //---
@@ -428,15 +428,15 @@ class CAwkLessEqualsOperator : public CAwkBinaryOperator {
   CAwkLessEqualsOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY; }
+  OpType getType() const override { return OpType::BINARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 7; }
+  uint getPrecedence() const override { return 7; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "<="; }
+  void print(std::ostream &os) const override { os << "<="; }
 };
 
 //---
@@ -451,15 +451,15 @@ class CAwkEqualsOperator : public CAwkBinaryOperator {
   CAwkEqualsOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY; }
+  OpType getType() const override { return OpType::BINARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 7; }
+  uint getPrecedence() const override { return 7; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "=="; }
+  void print(std::ostream &os) const override { os << "=="; }
 };
 
 //---
@@ -474,15 +474,15 @@ class CAwkNotEqualsOperator : public CAwkBinaryOperator {
   CAwkNotEqualsOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY; }
+  OpType getType() const override { return OpType::BINARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 7; }
+  uint getPrecedence() const override { return 7; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "!="; }
+  void print(std::ostream &os) const override { os << "!="; }
 };
 
 //---
@@ -497,15 +497,15 @@ class CAwkGreaterEqualsOperator : public CAwkBinaryOperator {
   CAwkGreaterEqualsOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY; }
+  OpType getType() const override { return OpType::BINARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 7; }
+  uint getPrecedence() const override { return 7; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << ">="; }
+  void print(std::ostream &os) const override { os << ">="; }
 };
 
 //---
@@ -520,15 +520,15 @@ class CAwkGreaterOperator : public CAwkBinaryOperator {
   CAwkGreaterOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY; }
+  OpType getType() const override { return OpType::BINARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 7; }
+  uint getPrecedence() const override { return 7; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << ">"; }
+  void print(std::ostream &os) const override { os << ">"; }
 };
 
 //---
@@ -543,15 +543,15 @@ class CAwkConcatOperator : public CAwkBinaryOperator {
   CAwkConcatOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY; }
+  OpType getType() const override { return OpType::BINARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 8; }
+  uint getPrecedence() const override { return 8; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "@"; }
+  void print(std::ostream &os) const override { os << "@"; }
 };
 
 //---
@@ -566,15 +566,15 @@ class CAwkPlusOperator : public CAwkBinaryOperator {
   CAwkPlusOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY; }
+  OpType getType() const override { return OpType::BINARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 9; }
+  uint getPrecedence() const override { return 9; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "+"; }
+  void print(std::ostream &os) const override { os << "+"; }
 };
 
 //---
@@ -589,15 +589,15 @@ class CAwkMinusOperator : public CAwkBinaryOperator {
   CAwkMinusOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY; }
+  OpType getType() const override { return OpType::BINARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 9; }
+  uint getPrecedence() const override { return 9; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "-"; }
+  void print(std::ostream &os) const override { os << "-"; }
 };
 
 //---
@@ -612,15 +612,15 @@ class CAwkTimesOperator : public CAwkBinaryOperator {
   CAwkTimesOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY; }
+  OpType getType() const override { return OpType::BINARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 10; }
+  uint getPrecedence() const override { return 10; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "*"; }
+  void print(std::ostream &os) const override { os << "*"; }
 };
 
 //---
@@ -635,15 +635,15 @@ class CAwkDivideOperator : public CAwkBinaryOperator {
   CAwkDivideOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY; }
+  OpType getType() const override { return OpType::BINARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 10; }
+  uint getPrecedence() const override { return 10; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "/"; }
+  void print(std::ostream &os) const override { os << "/"; }
 };
 
 //---
@@ -658,15 +658,15 @@ class CAwkModulusOperator : public CAwkBinaryOperator {
   CAwkModulusOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY; }
+  OpType getType() const override { return OpType::BINARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 10; }
+  uint getPrecedence() const override { return 10; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "%"; }
+  void print(std::ostream &os) const override { os << "%"; }
 };
 
 //---
@@ -681,15 +681,15 @@ class CAwkUnaryPlusOperator : public CAwkUnaryOperator {
   CAwkUnaryPlusOperator() { }
 
  public:
-  OpType getType() const { return OpType::UNARY; }
+  OpType getType() const override { return OpType::UNARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 11; }
+  uint getPrecedence() const override { return 11; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "+"; }
+  void print(std::ostream &os) const override { os << "+"; }
 };
 
 //---
@@ -704,15 +704,15 @@ class CAwkUnaryMinusOperator : public CAwkUnaryOperator {
   CAwkUnaryMinusOperator() { }
 
  public:
-  OpType getType() const { return OpType::UNARY; }
+  OpType getType() const override { return OpType::UNARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 11; }
+  uint getPrecedence() const override { return 11; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "-"; }
+  void print(std::ostream &os) const override { os << "-"; }
 };
 
 //---
@@ -727,15 +727,15 @@ class CAwkLogicalNotOperator : public CAwkUnaryOperator {
   CAwkLogicalNotOperator() { }
 
  public:
-  OpType getType() const { return OpType::UNARY; }
+  OpType getType() const override { return OpType::UNARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 12; }
+  uint getPrecedence() const override { return 12; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "!"; }
+  void print(std::ostream &os) const override { os << "!"; }
 };
 
 //---
@@ -750,15 +750,15 @@ class CAwkPowerOperator : public CAwkBinaryOperator {
   CAwkPowerOperator() { }
 
  public:
-  OpType getType() const { return OpType::BINARY; }
+  OpType getType() const override { return OpType::BINARY; }
 
-  Direction getDirection() const { return Direction::R_TO_L; }
+  Direction getDirection() const override { return Direction::R_TO_L; }
 
-  uint getPrecedence() const { return 13; }
+  uint getPrecedence() const override { return 13; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "^"; }
+  void print(std::ostream &os) const override { os << "^"; }
 };
 
 //---
@@ -773,15 +773,15 @@ class CAwkPreIncrementOperator : public CAwkOperator {
   CAwkPreIncrementOperator() { }
 
  public:
-  OpType getType() const { return OpType::UNARY_ASSIGN; }
+  OpType getType() const override { return OpType::UNARY_ASSIGN; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 14; }
+  uint getPrecedence() const override { return 14; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "++"; }
+  void print(std::ostream &os) const override { os << "++"; }
 };
 
 //---
@@ -796,15 +796,15 @@ class CAwkPostIncrementOperator : public CAwkOperator {
   CAwkPostIncrementOperator() { }
 
  public:
-  OpType getType() const { return OpType::UNARY_ASSIGN; }
+  OpType getType() const override { return OpType::UNARY_ASSIGN; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 14; }
+  uint getPrecedence() const override { return 14; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "++"; }
+  void print(std::ostream &os) const override { os << "++"; }
 };
 
 //---
@@ -819,15 +819,15 @@ class CAwkPreDecrementOperator : public CAwkOperator {
   CAwkPreDecrementOperator() { }
 
  public:
-  OpType getType() const { return OpType::UNARY_ASSIGN; }
+  OpType getType() const override { return OpType::UNARY_ASSIGN; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 14; }
+  uint getPrecedence() const override { return 14; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "--"; }
+  void print(std::ostream &os) const override { os << "--"; }
 };
 
 //---
@@ -842,15 +842,15 @@ class CAwkPostDecrementOperator : public CAwkOperator {
   CAwkPostDecrementOperator() { }
 
  public:
-  OpType getType() const { return OpType::UNARY_ASSIGN; }
+  OpType getType() const override { return OpType::UNARY_ASSIGN; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 14; }
+  uint getPrecedence() const override { return 14; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "--"; }
+  void print(std::ostream &os) const override { os << "--"; }
 };
 
 //---
@@ -865,15 +865,15 @@ class CAwkFieldOperator : public CAwkUnaryOperator {
   CAwkFieldOperator() { }
 
  public:
-  OpType getType() const { return OpType::UNARY; }
+  OpType getType() const override { return OpType::UNARY; }
 
-  Direction getDirection() const { return Direction::L_TO_R; }
+  Direction getDirection() const override { return Direction::L_TO_R; }
 
-  uint getPrecedence() const { return 15; }
+  uint getPrecedence() const override { return 15; }
 
-  CAwkExpressionTermPtr execute();
+  CAwkExpressionTermPtr execute() override;
 
-  void print(std::ostream &os) const { os << "$"; }
+  void print(std::ostream &os) const override { os << "$"; }
 };
 
 #endif

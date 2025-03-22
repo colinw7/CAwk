@@ -1,0 +1,3089 @@
+CONCAT_ID=##concat##
+##concat##CAwkAction.h
+#ifndef CAWK_ACTION_H
+#define CAWK_ACTION_H
+
+#include <CFile.h>
+
+/*
+ * Manager for opened files include special handling for stdin. stdout and stderr
+ */
+class CAwkFileMgr {
+ public:
+  CAwkFileMgr();
+ ~CAwkFileMgr() { }
+
+  void init();
+  void term();
+
+  CFile *getFile(FILE *file);
+  CFile *getFile(const std::string &fileName, CFileBase::Mode mode);
+
+  bool closeFile(const std::string &fileName);
+
+ private:
+  using FileList = std::list<CFile *>;
+
+  FileList  files_;
+  CFile*    stdInFile_  { nullptr };
+  CFile*    stdOutFile_ { nullptr };
+  CFile*    stdErrFile_ { nullptr };
+};
+
+//----
+
+class CAwkPipe {
+ public:
+  enum class Type {
+    NONE,
+    INPUT,
+    OUTPUT
+  };
+
+ public:
+  CAwkPipe(const std::string &cmdName, Type type);
+ ~CAwkPipe();
+
+  const std::string &getCmdName() const { return cmdName_; }
+
+  Type getType() const { return type_; }
+
+  void addInput(const std::string &input) {
+    input_ += input;
+  }
+
+  void setOutput(std::string *output) {
+    output_ = output;
+  }
+
+  void close();
+
+ private:
+  std::string  cmdName_;
+  Type         type_   { Type::NONE };
+  bool         opened_ { false };
+  std::string  input_;
+  std::string *output_ { nullptr };
+};
+
+//----
+
+class CAwkPipeMgr {
+ public:
+  CAwkPipeMgr() { }
+ ~CAwkPipeMgr();
+
+  void init();
+  void term();
+
+  CAwkPipe *getPipe(const std::string &cmdName, CAwkPipe::Type type);
+
+  bool closePipe(const std::string &cmdName);
+
+ private:
+  using PipeList = std::list<CAwkPipe *>;
+
+  PipeList pipes_;
+};
+
+//----
+
+class CAwkIFile {
+ public:
+  enum class Type {
+    READ_FILE    = 1,
+    PIPE_COMMAND = 2
+  };
+
+ private:
+  CAwkExpressionPtr file_;
+  Type              type_;
+
+ public:
+  static CAwkIFilePtr create(CAwkExpressionPtr file, Type type) {
+    return CAwkIFilePtr(new CAwkIFile(file, type));
+  }
+
+ private:
+  friend class CRefPtr<CAwkIFile>;
+
+  CAwkIFile(CAwkExpressionPtr file, Type type) :
+   file_(file), type_(type) {
+  }
+
+  CAwkIFile *dup() const { return nullptr; }
+
+ public:
+  bool read(std::string &str) const;
+
+  void print(std::ostream &os) const override;
+
+  friend std::ostream &operator<<(std::ostream &os, const CAwkIFile &th) {
+    th.print(os); return os;
+  }
+
+ private:
+  CFile *getFile() const;
+};
+
+class CAwkOFile {
+ public:
+  enum class Type {
+    WRITE_FILE   = 1,
+    APPEND_FILE  = 2,
+    PIPE_COMMAND = 3
+  };
+
+ private:
+  CAwkExpressionPtr expression_;
+  Type              type_;
+
+ public:
+  static CAwkOFilePtr create(CAwkExpressionPtr expression, Type type) {
+    return CAwkOFilePtr(new CAwkOFile(expression, type));
+  }
+
+ private:
+  friend class CRefPtr<CAwkOFile>;
+
+  CAwkOFile(CAwkExpressionPtr expression, Type type) :
+   expression_(expression), type_(type) {
+  }
+
+  CAwkOFile *dup() const { return nullptr; }
+
+ public:
+  void write(const std::string &str);
+
+  void print(std::ostream &os) const override;
+
+  friend std::ostream &operator<<(std::ostream &os, const CAwkOFile &th) {
+    th.print(os); return os;
+  }
+
+ private:
+  CFile *getFile() const;
+};
+
+//------------
+
+class CAwkAction {
+ protected:
+  friend class CRefPtr<CAwkAction>;
+
+  CAwkAction() { }
+
+  virtual ~CAwkAction() { }
+
+  CAwkAction *dup() const { return nullptr; }
+
+ public:
+  virtual void exec() = 0;
+
+  virtual void print(std::ostream &os) const = 0;
+
+  friend std::ostream &operator<<(std::ostream &os, const CAwkAction &th) {
+    th.print(os); return os;
+  }
+};
+
+class CAwkNullAction : public CAwkAction {
+ public:
+  static CAwkActionPtr create() {
+    return CAwkActionPtr(new CAwkNullAction);
+  }
+
+ private:
+  CAwkNullAction() { }
+
+ public:
+  void exec();
+
+  void print(std::ostream &) const override { }
+};
+
+class CAwkBreakAction : public CAwkAction {
+ public:
+  static CAwkActionPtr create() {
+    return CAwkActionPtr(new CAwkBreakAction);
+  }
+
+ private:
+  CAwkBreakAction() { }
+
+ public:
+  void exec();
+
+  void print(std::ostream &os) const override { os << "break" << std::endl; }
+};
+
+class CAwkContinueAction : public CAwkAction {
+ public:
+  static CAwkActionPtr create() {
+    return CAwkActionPtr(new CAwkContinueAction);
+  }
+
+ private:
+  CAwkContinueAction() { }
+
+ public:
+  void exec();
+
+  void print(std::ostream &os) const override { os << "continue" << std::endl; }
+};
+
+class CAwkNextAction : public CAwkAction {
+ public:
+  static CAwkActionPtr create() {
+    return CAwkActionPtr(new CAwkNextAction);
+  }
+
+ private:
+  CAwkNextAction() { }
+
+ public:
+  void exec();
+
+  void print(std::ostream &os) const override { os << "next" << std::endl; }
+};
+
+class CAwkReturnAction : public CAwkAction {
+ private:
+  CAwkExpressionPtr expression_;
+
+ public:
+  static CAwkActionPtr create(CAwkExpressionPtr expression) {
+    return CAwkActionPtr(new CAwkReturnAction(expression));
+  }
+
+ private:
+  CAwkReturnAction(CAwkExpressionPtr expression) :
+   expression_(expression) {
+  }
+
+ public:
+  void exec();
+
+  void print(std::ostream &os) const override;
+};
+
+class CAwkExitAction : public CAwkAction {
+ private:
+  CAwkExpressionPtr expression_;
+
+ public:
+  static CAwkActionPtr create(CAwkExpressionPtr expression) {
+    return CAwkActionPtr(new CAwkExitAction(expression));
+  }
+
+ private:
+  CAwkExitAction(CAwkExpressionPtr expression) :
+   expression_(expression) {
+  }
+
+ public:
+  void exec();
+
+  void print(std::ostream &os) const override;
+};
+
+class CAwkDeleteAction : public CAwkAction {
+ private:
+  CAwkVariableRefPtr var_;
+  CAwkExpressionPtr  expression_;
+
+ public:
+  static CAwkActionPtr
+  create(CAwkVariableRefPtr var, CAwkExpressionPtr expression) {
+    return CAwkActionPtr(new CAwkDeleteAction(var, expression));
+  }
+
+ private:
+  CAwkDeleteAction(CAwkVariableRefPtr var, CAwkExpressionPtr expression) :
+   var_(var), expression_(expression) {
+  }
+
+ public:
+  void exec();
+
+  void print(std::ostream &os) const override;
+};
+
+class CAwkIfAction : public CAwkAction {
+ private:
+  CAwkExpressionPtr expression_;
+  CAwkActionListPtr actionList_;
+
+ public:
+  static CAwkActionPtr
+  create(CAwkExpressionPtr expression, CAwkActionPtr action) {
+    return CAwkActionPtr(new CAwkIfAction(expression, action));
+  }
+
+ private:
+  CAwkIfAction(CAwkExpressionPtr expression, CAwkActionPtr action);
+
+ public:
+  void exec();
+
+  void print(std::ostream &os) const override;
+};
+
+class CAwkIfElseAction : public CAwkAction {
+ private:
+  CAwkExpressionPtr expression_;
+  CAwkActionListPtr actionList1_;
+  CAwkActionListPtr actionList2_;
+
+ public:
+  static CAwkActionPtr create(CAwkExpressionPtr expression,
+                              CAwkActionPtr action1, CAwkActionPtr action2) {
+    return CAwkActionPtr(new CAwkIfElseAction(expression, action1, action2));
+  }
+
+ private:
+  CAwkIfElseAction(CAwkExpressionPtr expression,
+                   CAwkActionPtr action1, CAwkActionPtr action2);
+
+ public:
+  void exec();
+
+  void print(std::ostream &os) const override;
+};
+
+class CAwkForAction : public CAwkAction {
+ private:
+  CAwkExpressionPtr expression1_;
+  CAwkExpressionPtr expression2_;
+  CAwkExpressionPtr expression3_;
+  CAwkActionListPtr actionList_;
+
+ public:
+  static CAwkActionPtr
+  create(CAwkExpressionPtr expression1, CAwkExpressionPtr expression2,
+         CAwkExpressionPtr expression3, CAwkActionPtr action) {
+    return CAwkActionPtr(new CAwkForAction(expression1, expression2,
+                                           expression3, action));
+  }
+
+ private:
+  CAwkForAction(CAwkExpressionPtr expression1, CAwkExpressionPtr expression2,
+                CAwkExpressionPtr expression3, CAwkActionPtr action);
+
+ public:
+  void exec();
+
+  void print(std::ostream &os) const override;
+};
+
+class CAwkForInAction : public CAwkAction {
+ private:
+  CAwkVariableRefPtr var1_;
+  CAwkVariableRefPtr var2_;
+  CAwkActionListPtr  actionList_;
+
+ public:
+  static CAwkActionPtr create(CAwkVariableRefPtr var1, CAwkVariableRefPtr var2,
+                              CAwkActionPtr action) {
+    return CAwkActionPtr(new CAwkForInAction(var1, var2, action));
+  }
+
+ private:
+  CAwkForInAction(CAwkVariableRefPtr var1, CAwkVariableRefPtr var2,
+                  CAwkActionPtr action);
+
+ public:
+  void exec();
+
+  void print(std::ostream &os) const override;
+};
+
+class CAwkWhileAction : public CAwkAction {
+ private:
+  CAwkExpressionPtr expression_;
+  CAwkActionListPtr actionList_;
+
+ public:
+  static CAwkActionPtr
+  create(CAwkExpressionPtr expression, CAwkActionPtr action) {
+    return CAwkActionPtr(new CAwkWhileAction(expression, action));
+  }
+
+ private:
+  CAwkWhileAction(CAwkExpressionPtr expression, CAwkActionPtr action);
+
+ public:
+  void exec();
+
+  void print(std::ostream &os) const override;
+};
+
+class CAwkDoWhileAction : public CAwkAction {
+ private:
+  CAwkActionListPtr actionList_;
+  CAwkExpressionPtr expression_;
+
+ public:
+  static CAwkActionPtr
+  create(CAwkActionPtr action, CAwkExpressionPtr expression) {
+    return CAwkActionPtr(new CAwkDoWhileAction(action, expression));
+  }
+
+ private:
+  CAwkDoWhileAction(CAwkActionPtr action, CAwkExpressionPtr expression);
+
+ public:
+  void exec();
+
+  void print(std::ostream &os) const override;
+};
+
+class CAwkActionListAction : public CAwkAction {
+ private:
+  CAwkActionListPtr actionList_;
+
+ public:
+  static CAwkActionPtr create(CAwkActionListPtr actionList) {
+    return CAwkActionPtr(new CAwkActionListAction(actionList));
+  }
+
+ private:
+  CAwkActionListAction(CAwkActionListPtr actionList) :
+   actionList_(actionList) {
+  }
+
+ public:
+  void exec();
+
+  void print(std::ostream &os) const override;
+};
+
+class CAwkExpressionAction : public CAwkAction {
+ private:
+  CAwkExpressionPtr expression_;
+
+ public:
+  static CAwkActionPtr create(CAwkExpressionPtr expression) {
+    return CAwkActionPtr(new CAwkExpressionAction(expression));
+  }
+
+ private:
+  CAwkExpressionAction(CAwkExpressionPtr expression) :
+   expression_(expression) {
+  }
+
+ public:
+  void exec();
+
+  void print(std::ostream &os) const override;
+};
+
+class CAwkCloseAction : public CAwkAction {
+ private:
+  CAwkExpressionPtr expression_;
+
+ public:
+  static CAwkActionPtr create(CAwkExpressionPtr expression) {
+    return CAwkActionPtr(new CAwkCloseAction(expression));
+  }
+
+ private:
+  CAwkCloseAction(CAwkExpressionPtr expression) :
+   expression_(expression) {
+  }
+
+ public:
+  void exec();
+
+  void print(std::ostream &os) const override;
+};
+
+class CAwkGetLineAction : public CAwkAction {
+ private:
+  CAwkVariableRefPtr var_;
+  CAwkIFilePtr       file_;
+
+ public:
+  static CAwkActionPtr create(CAwkVariableRefPtr var, CAwkIFilePtr file) {
+    return CAwkActionPtr(new CAwkGetLineAction(var, file));
+  }
+
+ private:
+  CAwkGetLineAction(CAwkVariableRefPtr var, CAwkIFilePtr file) :
+   var_(var), file_(file) {
+  }
+
+ public:
+  void exec();
+
+  void print(std::ostream &os) const override;
+};
+
+class CAwkPrintAction : public CAwkAction {
+ private:
+  CAwkExpressionList expressionList_;
+  CAwkOFilePtr       file_;
+
+ public:
+  static CAwkActionPtr
+  create(const CAwkExpressionList &expressionList, CAwkOFilePtr file) {
+    return CAwkActionPtr(new CAwkPrintAction(expressionList, file));
+  }
+
+ private:
+  CAwkPrintAction(const CAwkExpressionList &expressionList, CAwkOFilePtr file) :
+   expressionList_(expressionList), file_(file) {
+  }
+
+ public:
+  void exec();
+
+  void print(std::ostream &os) const override;
+};
+
+class CAwkPrintFAction : public CAwkAction {
+ private:
+  CAwkExpressionList expressionList_;
+  CAwkOFilePtr       file_;
+
+ public:
+  static CAwkActionPtr
+  create(const CAwkExpressionList &expressionList, CAwkOFilePtr file) {
+    return CAwkActionPtr(new CAwkPrintFAction(expressionList, file));
+  }
+
+ private:
+  CAwkPrintFAction(const CAwkExpressionList &expressionList, CAwkOFilePtr file) :
+   expressionList_(expressionList), file_(file) {
+  }
+
+ public:
+  void exec();
+
+  void print(std::ostream &os) const override;
+};
+
+class CAwkSystemAction : public CAwkAction {
+ private:
+  CAwkExpressionPtr expr_;
+
+ public:
+  static CAwkActionPtr create(CAwkExpressionPtr expr) {
+    return CAwkActionPtr(new CAwkSystemAction(expr));
+  }
+
+ private:
+  CAwkSystemAction(CAwkExpressionPtr expr) :
+   expr_(expr) {
+  }
+
+ public:
+  void exec();
+
+  void print(std::ostream &os) const override;
+};
+
+class CAwkActionList {
+ public:
+  enum class Type {
+    PROGRAM,
+    ROUTINE,
+    ITERATION,
+    SIMPLE
+  };
+
+ public:
+  static CAwkActionListPtr create(Type type) {
+    return CAwkActionListPtr(new CAwkActionList(type));
+  }
+
+ private:
+  friend class CRefPtr<CAwkActionList>;
+
+  CAwkActionList(Type type) : type_(type) { }
+
+  CAwkActionList *dup() const { return new CAwkActionList(*this); }
+
+ public:
+  void addAction(CAwkActionPtr action);
+
+  void exec();
+
+  void print(std::ostream &os) const override;
+
+  friend std::ostream &operator<<(std::ostream &os, const CAwkActionList &th) {
+    th.print(os); return os;
+  }
+
+ private:
+  using ActionList = std::vector<CAwkActionPtr>;
+
+  Type       type_;
+  ActionList actionList_;
+};
+
+//----
+
+class CAwkActionBlock {
+ public:
+  static CAwkActionBlockPtr
+  create(CAwkActionListPtr actionList) {
+    return CAwkActionBlockPtr(new CAwkActionBlock(actionList));
+  }
+
+ private:
+  friend class CRefPtr<CAwkActionBlock>;
+
+  CAwkActionBlock(CAwkActionListPtr actionList);
+
+  CAwkActionBlock *dup() const { return new CAwkActionBlock(*this); }
+
+ public:
+  CAwkVariablePtr getVariable(const std::string &name) const;
+  CAwkVariablePtr addVariable(const std::string &name);
+
+  void exec();
+
+  CAwkValuePtr getReturnValue() const { return returnValue_; }
+  void setReturnValue(CAwkValuePtr returnValue) { returnValue_ = returnValue; }
+
+  void print(std::ostream &os) const override;
+
+  friend std::ostream &operator<<(std::ostream &os, const CAwkActionBlock &th) {
+    th.print(os); return os;
+  }
+
+ private:
+  CAwkActionListPtr actionList_;
+  CAwkVariableMgr   variableMgr_;
+  CAwkValuePtr      returnValue_;
+};
+
+#endif
+##concat##CAwkExecuteStack.h
+#ifndef CAWK_EXECUTE_STACK_H
+#define CAWK_EXECUTE_STACK_H
+
+#include <CAwkTypes.h>
+
+class CAwkExecuteSubStack;
+class CAwkVariableRef;
+
+class CAwkExecuteStack {
+ public:
+  CAwkExecuteStack();
+ ~CAwkExecuteStack();
+
+  void begin();
+  void end();
+
+  void addTerm(CAwkOperatorPtr op);
+  void addTerm(CAwkExpressionTermPtr term);
+
+  bool checkUnstack(CAwkOperatorPtr op);
+
+  void unstackExpression();
+
+  bool hasLastOp() const;
+
+  double popReal();
+
+  CAwkVariableRefPtr popVariableRef();
+
+  CAwkValuePtr popValue();
+
+  CAwkExpressionTermPtr popTerm();
+
+  void print(std::ostream &os) const override;
+
+  friend std::ostream &operator<<(std::ostream &os, const CAwkExecuteStack &stack) {
+    stack.print(os);
+
+    return os;
+  }
+
+ private:
+  using ExecuteSubStackStack = std::vector<CAwkExecuteSubStack *>;
+
+  CAwkExecuteSubStack* executeSubStack_      { nullptr };
+  ExecuteSubStackStack executeSubStackStack_;
+};
+
+//----
+
+class CAwkExecuteSubStack {
+ public:
+  CAwkExecuteSubStack();
+
+  void addTerm(CAwkOperatorPtr op);
+  void addTerm(CAwkExpressionTermPtr term);
+
+  bool checkUnstack(CAwkOperatorPtr op);
+
+  void unstackExpression();
+
+  bool hasLastOp() const { return lastOp_.isValid(); }
+
+  CAwkVariableRefPtr popVariableRef();
+
+  CAwkValuePtr popValue();
+
+  CAwkExpressionTermPtr popTerm();
+
+  void print(std::ostream &os) const override;
+
+  friend std::ostream &operator<<(std::ostream &os, const CAwkExecuteSubStack &stack) {
+    stack.print(os);
+
+    return os;
+  }
+
+ private:
+  using TermList = CAwkExpressionTermList;
+  using OpStack  = CAwkOperatorList;
+
+  TermList        termList_;
+  bool            value_ { false };
+  OpStack         opStack_;
+  CAwkOperatorPtr lastOp_;
+};
+
+#endif
+##concat##CAwkExpression.h
+#ifndef CAWK_EXPRESSION_H
+#define CAWK_EXPRESSION_H
+
+#include <COptVal.h>
+#include <CAwkTypes.h>
+
+class CAwkVariableRef;
+
+class CAwkExpressionTerm {
+ protected:
+  friend class CRefPtr<CAwkExpressionTerm>;
+
+  CAwkExpressionTerm() { }
+
+  virtual ~CAwkExpressionTerm() { }
+
+  CAwkExpressionTerm *dup() const { return NULL; }
+
+ public:
+  virtual void print(std::ostream &os) const = 0;
+
+  virtual CAwkExpressionTermPtr execute() = 0;
+
+  virtual bool hasValue() const = 0;
+
+  virtual CAwkValuePtr getValue() const = 0;
+
+  friend std::ostream &operator<<(std::ostream &os, const CAwkExpressionTerm &th) {
+    th.print(os); return os;
+  }
+};
+
+//---
+
+class CAwkExpression : public CAwkExpressionTerm {
+ protected:
+  friend class CRefPtr<CAwkExpression>;
+
+  CAwkExpression();
+
+ ~CAwkExpression() { }
+
+  CAwkExpression *dup() const { return new CAwkExpression(*this); }
+
+ public:
+  static CAwkExpressionPtr create() {
+    return CAwkExpressionPtr(new CAwkExpression);
+  }
+
+  bool hasValue() const override { return true; }
+
+  CAwkValuePtr getValue() const override;
+
+  void pushTerm(CAwkExpressionTermPtr term);
+
+  bool isValue() const { return value_; }
+
+  uint numTerms() const { return termList_.size(); }
+
+  CAwkExpressionTermPtr execute() override;
+
+  void print(std::ostream &os) const override;
+
+  friend std::ostream &operator<<(std::ostream &os, const CAwkExpression &th) {
+    th.print(os); return os;
+  }
+
+ private:
+  using TermList = CAwkExpressionTermList;
+  using OpStack  = CAwkOperatorList;
+
+  TermList        termList_;
+  bool            value_ { false };
+  OpStack         opStack_;
+  CAwkOperatorPtr lastOp_;
+};
+
+//---
+
+class CAwkGetLineExpr : public CAwkExpressionTerm {
+ public:
+  static CAwkExpressionTermPtr create(CAwkVariableRefPtr var, CAwkIFilePtr file, bool hasValue) {
+    return CAwkExpressionTermPtr(new CAwkGetLineExpr(var, file, hasValue));
+  }
+
+ private:
+  CAwkGetLineExpr(CAwkVariableRefPtr var, CAwkIFilePtr file, bool hasValue) :
+   var_(var), file_(file), hasValue_(hasValue) {
+  }
+
+ public:
+  bool hasValue() const override { return hasValue_; }
+
+  CAwkValuePtr getValue() const override;
+
+  CAwkExpressionTermPtr execute() override;
+
+  void print(std::ostream &os) const override;
+
+ private:
+  CAwkVariableRefPtr var_;
+  CAwkIFilePtr       file_;
+  bool               hasValue_ { false };
+};
+
+#endif
+##concat##CAwkFunction.h
+#ifndef CAWK_FUNCTION_H
+#define CAWK_FUNCTION_H
+
+#include <CAwkTypes.h>
+
+class CAwkFunction {
+ protected:
+  friend class CRefPtr<CAwkFunction>;
+
+  CAwkFunction(CAwk *awk, const std::string &name) :
+   awk_(awk), name_(name) {
+  }
+
+  virtual ~CAwkFunction() { }
+
+  CAwkFunction *dup() const { return NULL; }
+
+ public:
+  const std::string &getName() const { return name_; }
+
+  virtual CAwkValuePtr exec(const CAwkExpressionTermList &values) = 0;
+
+  virtual void print(std::ostream &os) const = 0;
+
+  friend std::ostream &operator<<(std::ostream &os, const CAwkFunction &th) {
+    th.print(os); return os;
+  }
+
+ protected:
+  CAwk*       awk_ { nullptr };
+  std::string name_;
+};
+
+//---
+
+class CAwkExprFunction : public CAwkExpressionTerm {
+ public:
+  static CAwkExpressionTermPtr create(CAwk *awk, const std::string &name,
+                                      const CAwkExpressionList &expressionList) {
+    return CAwkExpressionTermPtr(new CAwkExprFunction(awk, name, expressionList));
+  }
+
+ private:
+  friend class CRefPtr<CAwkExprFunction>;
+
+  CAwkExprFunction(CAwk *awk, const std::string &name, const CAwkExpressionList &expressionList) :
+   awk_(awk), name_(name), expressionList_(expressionList) {
+  }
+
+ ~CAwkExprFunction() { }
+
+  CAwkExprFunction *dup() const { return new CAwkExprFunction(*this); }
+
+ public:
+  bool hasValue() const override { return true; }
+
+  CAwkValuePtr getValue() const override;
+
+  CAwkExpressionTermPtr execute() override;
+
+  void print(std::ostream &os) const override;
+
+ private:
+  CAwk*              awk_ { nullptr };
+  std::string        name_;
+  CAwkExpressionList expressionList_;
+};
+
+//----
+
+class CAwkParseFunction : public CAwkFunction {
+ public:
+  static CAwkFunctionPtr create(CAwk *awk, const std::string &name, const StringVectorT &args,
+                                CAwkActionListPtr actionList) {
+    return CAwkFunctionPtr(new CAwkParseFunction(awk, name, args, actionList));
+  }
+
+ private:
+  CAwkParseFunction(CAwk *awk, const std::string &name, const StringVectorT &args,
+                    CAwkActionListPtr actionList) :
+   CAwkFunction(awk, name), args_(args), actionList_(actionList) {
+  }
+
+ ~CAwkParseFunction() { }
+
+ public:
+  CAwkValuePtr exec(const CAwkExpressionTermList &values) override;
+
+  void print(std::ostream &os) const override;
+
+ private:
+  StringVectorT     args_;
+  CAwkActionListPtr actionList_;
+};
+
+//----
+
+class CAwkBuiltinFunction : public CAwkFunction {
+ protected:
+  CAwkBuiltinFunction(CAwk *awk, const std::string &name) :
+   CAwkFunction(awk, name) {
+  }
+};
+
+//----
+
+class CAwkAtan2Function : public CAwkBuiltinFunction {
+ public:
+  static CAwkFunctionPtr create(CAwk *awk) {
+    return CAwkFunctionPtr(new CAwkAtan2Function(awk));
+  }
+
+ private:
+  CAwkAtan2Function(CAwk *awk) :
+   CAwkBuiltinFunction(awk, "atan2") {
+  }
+
+ public:
+  CAwkValuePtr exec(const CAwkExpressionTermList &values) override;
+
+  void print(std::ostream &os) const override;
+};
+
+//----
+
+class CAwkCosFunction : public CAwkBuiltinFunction {
+ public:
+  static CAwkFunctionPtr create(CAwk *awk) {
+    return CAwkFunctionPtr(new CAwkCosFunction(awk));
+  }
+
+ private:
+  CAwkCosFunction(CAwk *awk) :
+   CAwkBuiltinFunction(awk, "cos") {
+  }
+
+ public:
+  CAwkValuePtr exec(const CAwkExpressionTermList &values) override;
+
+  void print(std::ostream &os) const override;
+};
+
+//----
+
+class CAwkExpFunction : public CAwkBuiltinFunction {
+ public:
+  static CAwkFunctionPtr create(CAwk *awk) {
+    return CAwkFunctionPtr(new CAwkExpFunction(awk));
+  }
+
+ private:
+  CAwkExpFunction(CAwk *awk) :
+   CAwkBuiltinFunction(awk, "exp") {
+  }
+
+ public:
+  CAwkValuePtr exec(const CAwkExpressionTermList &values) override;
+
+  void print(std::ostream &os) const override;
+};
+
+//----
+
+class CAwkIntFunction : public CAwkBuiltinFunction {
+ public:
+  static CAwkFunctionPtr create(CAwk *awk) {
+    return CAwkFunctionPtr(new CAwkIntFunction(awk));
+  }
+
+ private:
+  CAwkIntFunction(CAwk *awk) :
+   CAwkBuiltinFunction(awk, "int") {
+  }
+
+ public:
+  CAwkValuePtr exec(const CAwkExpressionTermList &values) override;
+
+  void print(std::ostream &os) const override;
+};
+
+//----
+
+class CAwkLogFunction : public CAwkBuiltinFunction {
+ public:
+  static CAwkFunctionPtr create(CAwk *awk) {
+    return CAwkFunctionPtr(new CAwkLogFunction(awk));
+  }
+
+ private:
+  CAwkLogFunction(CAwk *awk) :
+   CAwkBuiltinFunction(awk, "log") {
+  }
+
+ public:
+  CAwkValuePtr exec(const CAwkExpressionTermList &values) override;
+
+  void print(std::ostream &os) const override;
+};
+
+//----
+
+class CAwkRandFunction : public CAwkBuiltinFunction {
+ public:
+  static CAwkFunctionPtr create(CAwk *awk) {
+    return CAwkFunctionPtr(new CAwkRandFunction(awk));
+  }
+
+ private:
+  CAwkRandFunction(CAwk *awk) :
+   CAwkBuiltinFunction(awk, "rand") {
+  }
+
+ public:
+  CAwkValuePtr exec(const CAwkExpressionTermList &values) override;
+
+  void print(std::ostream &os) const override;
+};
+
+//----
+
+class CAwkSinFunction : public CAwkBuiltinFunction {
+ public:
+  static CAwkFunctionPtr create(CAwk *awk) {
+    return CAwkFunctionPtr(new CAwkSinFunction(awk));
+  }
+
+ private:
+  CAwkSinFunction(CAwk *awk) :
+   CAwkBuiltinFunction(awk, "sin") {
+  }
+
+ public:
+  CAwkValuePtr exec(const CAwkExpressionTermList &values) override;
+
+  void print(std::ostream &os) const override;
+};
+
+//----
+
+class CAwkSqrtFunction : public CAwkBuiltinFunction {
+ public:
+  static CAwkFunctionPtr create(CAwk *awk) {
+    return CAwkFunctionPtr(new CAwkSqrtFunction(awk));
+  }
+
+ private:
+  CAwkSqrtFunction(CAwk *awk) :
+   CAwkBuiltinFunction(awk, "sqrt") {
+  }
+
+ public:
+  CAwkValuePtr exec(const CAwkExpressionTermList &values) override;
+
+  void print(std::ostream &os) const override;
+};
+
+//----
+
+class CAwkSrandFunction : public CAwkBuiltinFunction {
+ public:
+  static CAwkFunctionPtr create(CAwk *awk) {
+    return CAwkFunctionPtr(new CAwkSrandFunction(awk));
+  }
+
+ private:
+  CAwkSrandFunction(CAwk *awk) :
+   CAwkBuiltinFunction(awk, "srand") {
+  }
+
+ public:
+  CAwkValuePtr exec(const CAwkExpressionTermList &values) override;
+
+  void print(std::ostream &os) const override;
+};
+
+//----
+
+class CAwkGsubFunction : public CAwkBuiltinFunction {
+ public:
+  static CAwkFunctionPtr create(CAwk *awk) {
+    return CAwkFunctionPtr(new CAwkGsubFunction(awk));
+  }
+
+ private:
+  CAwkGsubFunction(CAwk *awk) :
+   CAwkBuiltinFunction(awk, "gsub") {
+  }
+
+ public:
+  CAwkValuePtr exec(const CAwkExpressionTermList &values) override;
+
+  void print(std::ostream &os) const override;
+};
+
+//----
+
+class CAwkIndexFunction : public CAwkBuiltinFunction {
+ public:
+  static CAwkFunctionPtr create(CAwk *awk) {
+    return CAwkFunctionPtr(new CAwkIndexFunction(awk));
+  }
+
+ private:
+  CAwkIndexFunction(CAwk *awk) :
+   CAwkBuiltinFunction(awk, "index") {
+  }
+
+ public:
+  CAwkValuePtr exec(const CAwkExpressionTermList &values) override;
+
+  void print(std::ostream &os) const override;
+};
+
+//----
+
+class CAwkLengthFunction : public CAwkBuiltinFunction {
+ public:
+  static CAwkFunctionPtr create(CAwk *awk) {
+    return CAwkFunctionPtr(new CAwkLengthFunction(awk));
+  }
+
+ private:
+  CAwkLengthFunction(CAwk *awk) :
+   CAwkBuiltinFunction(awk, "length") {
+  }
+
+ public:
+  CAwkValuePtr exec(const CAwkExpressionTermList &values) override;
+
+  void print(std::ostream &os) const override;
+};
+
+//----
+
+class CAwkMatchFunction : public CAwkBuiltinFunction {
+ public:
+  static CAwkFunctionPtr create(CAwk *awk) {
+    return CAwkFunctionPtr(new CAwkMatchFunction(awk));
+  }
+
+ private:
+  CAwkMatchFunction(CAwk *awk) :
+   CAwkBuiltinFunction(awk, "match") {
+  }
+
+ public:
+  CAwkValuePtr exec(const CAwkExpressionTermList &values) override;
+
+  void print(std::ostream &os) const override;
+};
+
+//----
+
+class CAwkSplitFunction : public CAwkBuiltinFunction {
+ public:
+  static CAwkFunctionPtr create(CAwk *awk) {
+    return CAwkFunctionPtr(new CAwkSplitFunction(awk));
+  }
+
+ private:
+  CAwkSplitFunction(CAwk *awk) :
+   CAwkBuiltinFunction(awk, "split") {
+  }
+
+ public:
+  CAwkValuePtr exec(const CAwkExpressionTermList &values) override;
+
+  void print(std::ostream &os) const override;
+};
+
+//----
+
+class CAwkSprintfFunction : public CAwkBuiltinFunction {
+ public:
+  static CAwkFunctionPtr create(CAwk *awk) {
+    return CAwkFunctionPtr(new CAwkSprintfFunction(awk));
+  }
+
+ private:
+  CAwkSprintfFunction(CAwk *awk) :
+   CAwkBuiltinFunction(awk, "sprintf") {
+  }
+
+ public:
+  CAwkValuePtr exec(const CAwkExpressionTermList &values) override;
+
+  void print(std::ostream &os) const override;
+};
+
+//----
+
+class CAwkSubFunction : public CAwkBuiltinFunction {
+ public:
+  static CAwkFunctionPtr create(CAwk *awk) {
+    return CAwkFunctionPtr(new CAwkSubFunction(awk));
+  }
+
+ private:
+  CAwkSubFunction(CAwk *awk) :
+   CAwkBuiltinFunction(awk, "sub") {
+  }
+
+ public:
+  CAwkValuePtr exec(const CAwkExpressionTermList &values) override;
+
+  void print(std::ostream &os) const override;
+};
+
+//----
+
+class CAwkSubstrFunction : public CAwkBuiltinFunction {
+ public:
+  static CAwkFunctionPtr create(CAwk *awk) {
+    return CAwkFunctionPtr(new CAwkSubstrFunction(awk));
+  }
+
+ private:
+  CAwkSubstrFunction(CAwk *awk) :
+   CAwkBuiltinFunction(awk, "substr") {
+  }
+
+ public:
+  CAwkValuePtr exec(const CAwkExpressionTermList &values) override;
+
+  void print(std::ostream &os) const override;
+};
+
+//----
+
+class CAwkFunctionMgr {
+ public:
+  CAwkFunctionMgr() { }
+
+  void clear();
+
+  void addFunction(CAwkFunctionPtr function);
+
+  CAwkFunctionPtr getFunction(const std::string &name) const;
+
+  void print(std::ostream &os) const;
+
+ private:
+  using FunctionMap = std::map<std::string,CAwkFunctionPtr>;
+
+  FunctionMap functionMap_;
+};
+
+#endif
+##concat##CAwk.h
+#ifndef CAWK_H
+#define CAWK_H
+
+#include <CAwkTypes.h>
+#include <CAwkExecuteStack.h>
+#include <CAwkVariable.h>
+#include <CAwkValue.h>
+#include <CAwkFunction.h>
+#include <CAwkAction.h>
+#include <CAwkPattern.h>
+#include <CAwkOperator.h>
+
+#include <CStrParse.h>
+#include <CFile.h>
+#include <memory>
+
+class CAwkPatternAction {
+ public:
+  static CAwkPatternActionPtr
+  create(CAwkPatternPtr pattern, CAwkActionListPtr actionList) {
+    return CAwkPatternActionPtr(new CAwkPatternAction(pattern, actionList));
+  }
+
+ private:
+  friend class CRefPtr<CAwkPatternAction>;
+
+  CAwkPatternAction(CAwkPatternPtr pattern, CAwkActionListPtr actionList) :
+   pattern_(pattern), actionList_(actionList) {
+  }
+
+ ~CAwkPatternAction() { }
+
+  CAwkPatternAction *dup() const { return new CAwkPatternAction(*this); }
+
+ public:
+  bool isBegin() const;
+  bool isEnd  () const;
+
+  void exec();
+
+  void print(std::ostream &os) const;
+
+  friend std::ostream &operator<<(std::ostream &os, const CAwkPatternAction &th) {
+    th.print(os); return os;
+  }
+
+ private:
+  CAwkPatternPtr    pattern_;
+  CAwkActionListPtr actionList_;
+};
+
+//----
+
+#define CAwkInst CAwk::getInstance()
+
+class CAwk {
+ private:
+  enum class BlockFlags {
+    NONE     = 0,
+    BREAK    = (1<<0),
+    CONTINUE = (1<<1),
+    NEXT     = (1<<2),
+    RETURN   = (1<<3),
+    EXIT     = (1<<4)
+  };
+
+ public:
+  static CAwk *getInstance();
+
+ private:
+  CAwk();
+ ~CAwk() { }
+
+ public:
+  void init(const StringVectorT &args);
+
+  bool parseFile(const std::string &fileName);
+  bool parseLine(const std::string &line);
+
+  bool parseInit(const std::string &str);
+
+  bool execFile(const std::string &fileName);
+
+  void addStdFunctions();
+  void addStdVariables();
+
+  bool parseProgram();
+
+  void print(std::ostream &os) const;
+
+  bool process();
+
+  void setLine(const std::string &line);
+
+  const std::string &getLine() { return line_; }
+
+  const std::string &getLineField(uint pos) const;
+  void setLineField(uint pos, const std::string &value);
+
+  void setLineFields();
+
+  CAwkExecuteStack &getExecuteStack() { return executeStack_; }
+
+  bool getDebug() const { return debug_; }
+  void setDebug(bool debug=true) { debug_ = debug; }
+
+  CAwkValuePtr getReturnValue() const;
+  void setReturnValue(CAwkValuePtr returnValue);
+
+  friend std::ostream &operator<<(std::ostream &os, const CAwk &th) {
+    th.print(os); return os;
+  }
+
+  bool parseFunction(CAwkFunctionPtr *function);
+  bool parseFuncName(std::string &name);
+  bool parseVarNameList(StringVectorT &args);
+  bool parsePattern(CAwkPatternPtr *pattern);
+  bool parseStatementList(CAwkActionListPtr *actionList);
+  bool parseStatement(CAwkActionPtr *action);
+  bool parseSimpleStatement(CAwkActionPtr *action);
+  bool parseInputOutputAction(CAwkActionPtr *action);
+  bool parseRedirectExpressionList(CAwkExpressionList &expressionList);
+  bool parseExpressionList(CAwkExpressionList &expressionList);
+  bool parseExpression(CAwkExpressionPtr *expression);
+  bool parseExpressionValue(CAwkExpressionPtr *expression);
+  bool parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue=false);
+  bool parseRegularExpression(std::string &regexp);
+  bool parseSubscript(CAwkExpressionPtr *expression);
+  bool parseVariable(CAwkVariableRefPtr *var);
+  bool parseIdentifier(std::string &name);
+  bool parseFormat(std::string &name);
+  bool parseString(CAwkValuePtr *value);
+  bool parseString(std::string &str);
+  bool parseNumber(CAwkValuePtr *value);
+  bool parseOperator(CAwkOperatorPtr *op, bool value);
+
+  int ioFindRedirect();
+
+  bool isNewLine();
+  bool readLine(std::string &line);
+
+  std::string removeComments(const std::string &line);
+
+  void addFunction(CAwkFunctionPtr function) {
+    functionMgr_.addFunction(function);
+  }
+
+  CAwkFunctionPtr getFunction(const std::string &name) const {
+    return functionMgr_.getFunction(name);
+  }
+
+  void addPatternAction(CAwkPatternActionPtr patternAction) {
+    patternActionList_.push_back(patternAction);
+  }
+
+  CAwkValuePtr getValue(CAwkExpressionTermPtr term);
+  CAwkVariableRefPtr getVariableRef(CAwkExpressionTermPtr term);
+
+  CAwkVariablePtr getVariable(const std::string &name, bool create=false, bool global=false) const;
+  CAwkVariablePtr addVariable(const std::string &name, bool global=false);
+
+  CFile *getFile(FILE *file);
+  CFile *getFile(const std::string &fileName, CFileBase::Mode mode);
+  bool   closeFile(const std::string &fileName);
+
+  CAwkPipe *getPipe(const std::string &cmdName, CAwkPipe::Type);
+  bool      closePipe(const std::string &cmdName);
+
+  void startBlock(CAwkActionBlockPtr block);
+  void endBlock();
+
+  void setBreakFlag  () { block_flags_ = BlockFlags::BREAK; }
+  void resetBreakFlag() { block_flags_ = BlockFlags::NONE  ; }
+  bool isBreakFlag   () { return (block_flags_ == BlockFlags::BREAK); }
+
+  void setContinueFlag  () { block_flags_ = BlockFlags::CONTINUE; }
+  void resetContinueFlag() { block_flags_ = BlockFlags::NONE  ; }
+  bool isContinueFlag   () { return (block_flags_ == BlockFlags::CONTINUE); }
+
+  void setNextFlag  () { block_flags_ = BlockFlags::NEXT; }
+  void resetNextFlag() { block_flags_ = BlockFlags::NONE  ; }
+  bool isNextFlag   () { return (block_flags_ == BlockFlags::NEXT); }
+
+  void setReturnFlag  () { block_flags_ = BlockFlags::RETURN; }
+  void resetReturnFlag() { block_flags_ = BlockFlags::NONE  ; }
+  bool isReturnFlag   () { return (block_flags_ == BlockFlags::RETURN); }
+
+  void setExitFlag  () { block_flags_ = BlockFlags::EXIT; }
+  void resetExitFlag() { block_flags_ = BlockFlags::NONE  ; }
+  bool isExitFlag   () { return (block_flags_ == BlockFlags::EXIT); }
+
+  void error(const std::string &str) const;
+
+ private:
+  using FunctionList      = std::vector<CAwkFunctionPtr>;
+  using PatternActionList = std::vector<CAwkPatternActionPtr>;
+
+  using ParseP = std::unique_ptr<CStrParse>;
+  using FileP  = std::unique_ptr<CFile>;
+
+  ParseP                  parser_;
+  CAwkFunctionMgr         functionMgr_;
+  CAwkVariableMgr         variableMgr_;
+  CAwkFileMgr             fileMgr_;
+  CAwkPipeMgr             pipeMgr_;
+  PatternActionList       patternActionList_;
+  CAwkExecuteStack        executeStack_;
+  std::string             line_;
+  COptValT<StringVectorT> lineFields_;
+  std::string             output_field_separator_;
+  std::string             output_record_separator_;
+  std::string             real_output_format_;
+  FileP                   input_file_;
+  std::string             file_name_;
+  int                     line_num_ { 0 };
+  bool                    debug_    { false };
+  CAwkActionBlockPtr      currentBlock_;
+  CAwkActionBlockList     blockStack_;
+  CAwkValuePtr            returnValue_;
+  BlockFlags              block_flags_;
+};
+
+#endif
+##concat##CAwkOperator.h
+#ifndef CAWK_OPERATOR_H
+#define CAWK_OPERATOR_H
+
+class CAwkOperator : public CAwkExpressionTerm {
+ public:
+  enum class OpType {
+    UNARY       = (1<<0),
+    BINARY      = (1<<1),
+    TERNARY     = (1<<2),
+    START_GROUP = (1<<3),
+    END_GROUP   = (1<<4),
+    ASSIGN      = (1<<5),
+
+    UNARY_ASSIGN  = (UNARY  | ASSIGN),
+    BINARY_ASSIGN = (BINARY | ASSIGN)
+  };
+
+  enum class Direction {
+    L_TO_R,
+    R_TO_L
+  };
+
+ protected:
+  friend class CRefPtr<CAwkOperator>;
+
+  CAwkOperator() { }
+
+  virtual ~CAwkOperator() { }
+
+  CAwkOperator *dup() const { return NULL; }
+
+ public:
+  bool hasValue() const { return false; }
+
+  CAwkValuePtr getValue() const { return CAwkValuePtr(); }
+
+  virtual void print(std::ostream &os) const = 0;
+
+  virtual OpType getType() const = 0;
+
+  bool isUnary  () { return (int(getType()) & int(OpType::UNARY  )); }
+  bool isBinary () { return (int(getType()) & int(OpType::BINARY )); }
+  bool isTernary() { return (int(getType()) & int(OpType::TERNARY)); }
+
+  virtual Direction getDirection() const = 0;
+
+  virtual uint getPrecedence() const = 0;
+
+  virtual CAwkExpressionTermPtr execute() = 0;
+
+  friend std::ostream &operator<<(std::ostream &os, const CAwkOperator &th) {
+    th.print(os); return os;
+  }
+};
+
+//---
+
+class CAwkUnaryOperator : public CAwkOperator {
+ protected:
+  CAwkUnaryOperator() { }
+
+  virtual ~CAwkUnaryOperator() { }
+};
+
+//---
+
+class CAwkBinaryOperator : public CAwkOperator {
+ protected:
+  CAwkBinaryOperator() { }
+
+  virtual ~CAwkBinaryOperator() { }
+};
+
+//---
+
+class CAwkAssignOperator : public CAwkOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkAssignOperator);
+  }
+
+ private:
+  CAwkAssignOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY_ASSIGN; }
+
+  Direction getDirection() const { return Direction::R_TO_L; }
+
+  uint getPrecedence() const { return 1; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "="; }
+};
+
+//---
+
+class CAwkPlusEqualsOperator : public CAwkOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkPlusEqualsOperator);
+  }
+
+ private:
+  CAwkPlusEqualsOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY_ASSIGN; }
+
+  Direction getDirection() const { return Direction::R_TO_L; }
+
+  uint getPrecedence() const { return 1; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "+="; }
+};
+
+//---
+
+class CAwkMinusEqualsOperator : public CAwkOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkMinusEqualsOperator);
+  }
+
+ private:
+  CAwkMinusEqualsOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY_ASSIGN; }
+
+  Direction getDirection() const { return Direction::R_TO_L; }
+
+  uint getPrecedence() const { return 1; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "-="; }
+};
+
+//---
+
+class CAwkTimesEqualsOperator : public CAwkOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkTimesEqualsOperator);
+  }
+
+ private:
+  CAwkTimesEqualsOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY_ASSIGN; }
+
+  Direction getDirection() const { return Direction::R_TO_L; }
+
+  uint getPrecedence() const { return 1; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "*="; }
+};
+
+//---
+
+class CAwkDivideEqualsOperator : public CAwkOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkDivideEqualsOperator);
+  }
+
+ private:
+  CAwkDivideEqualsOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY_ASSIGN; }
+
+  Direction getDirection() const { return Direction::R_TO_L; }
+
+  uint getPrecedence() const { return 1; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "/="; }
+};
+
+//---
+
+class CAwkModulusEqualsOperator : public CAwkOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkModulusEqualsOperator);
+  }
+
+ private:
+  CAwkModulusEqualsOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY_ASSIGN; }
+
+  Direction getDirection() const { return Direction::R_TO_L; }
+
+  uint getPrecedence() const { return 1; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "%="; }
+};
+
+//---
+
+class CAwkPowerEqualsOperator : public CAwkOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkPowerEqualsOperator);
+  }
+
+ private:
+  CAwkPowerEqualsOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY_ASSIGN; }
+
+  Direction getDirection() const { return Direction::R_TO_L; }
+
+  uint getPrecedence() const { return 1; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "^="; }
+};
+
+//---
+
+class CAwkQuestionOperator : public CAwkOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkQuestionOperator);
+  }
+
+ private:
+  CAwkQuestionOperator() { }
+
+ public:
+  OpType getType() const { return OpType::TERNARY; }
+
+  Direction getDirection() const { return Direction::R_TO_L; }
+
+  uint getPrecedence() const { return 2; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "?"; }
+};
+
+//---
+
+class CAwkColonOperator : public CAwkOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkColonOperator);
+  }
+
+ private:
+  CAwkColonOperator() { }
+
+ public:
+  OpType getType() const { return OpType::TERNARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 2; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << ":"; }
+};
+
+//---
+
+class CAwkLogicalOrOperator : public CAwkBinaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkLogicalOrOperator);
+  }
+
+ private:
+  CAwkLogicalOrOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 3; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "||"; }
+};
+
+//---
+
+class CAwkLogicalAndOperator : public CAwkBinaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkLogicalAndOperator);
+  }
+
+ private:
+  CAwkLogicalAndOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 4; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "&&"; }
+};
+
+//---
+
+class CAwkInOperator : public CAwkBinaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkInOperator);
+  }
+
+ private:
+  CAwkInOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 5; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "in"; }
+};
+
+//---
+
+class CAwkRegExpOperator : public CAwkUnaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkRegExpOperator);
+  }
+
+ private:
+  CAwkRegExpOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 6; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "~"; }
+};
+
+//---
+
+class CAwkNotRegExpOperator : public CAwkUnaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkNotRegExpOperator);
+  }
+
+ private:
+  CAwkNotRegExpOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 6; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "!~"; }
+};
+
+//---
+
+class CAwkLessOperator : public CAwkBinaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkLessOperator);
+  }
+
+ private:
+  CAwkLessOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 7; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "<"; }
+};
+
+//---
+
+class CAwkLessEqualsOperator : public CAwkBinaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkLessEqualsOperator);
+  }
+
+ private:
+  CAwkLessEqualsOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 7; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "<="; }
+};
+
+//---
+
+class CAwkEqualsOperator : public CAwkBinaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkEqualsOperator);
+  }
+
+ private:
+  CAwkEqualsOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 7; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "=="; }
+};
+
+//---
+
+class CAwkNotEqualsOperator : public CAwkBinaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkNotEqualsOperator);
+  }
+
+ private:
+  CAwkNotEqualsOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 7; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "!="; }
+};
+
+//---
+
+class CAwkGreaterEqualsOperator : public CAwkBinaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkGreaterEqualsOperator);
+  }
+
+ private:
+  CAwkGreaterEqualsOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 7; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << ">="; }
+};
+
+//---
+
+class CAwkGreaterOperator : public CAwkBinaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkGreaterOperator);
+  }
+
+ private:
+  CAwkGreaterOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 7; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << ">"; }
+};
+
+//---
+
+class CAwkConcatOperator : public CAwkBinaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkConcatOperator);
+  }
+
+ private:
+  CAwkConcatOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 8; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "@"; }
+};
+
+//---
+
+class CAwkPlusOperator : public CAwkBinaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkPlusOperator);
+  }
+
+ private:
+  CAwkPlusOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 9; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "+"; }
+};
+
+//---
+
+class CAwkMinusOperator : public CAwkBinaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkMinusOperator);
+  }
+
+ private:
+  CAwkMinusOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 9; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "-"; }
+};
+
+//---
+
+class CAwkTimesOperator : public CAwkBinaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkTimesOperator);
+  }
+
+ private:
+  CAwkTimesOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 10; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "*"; }
+};
+
+//---
+
+class CAwkDivideOperator : public CAwkBinaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkDivideOperator);
+  }
+
+ private:
+  CAwkDivideOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 10; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "/"; }
+};
+
+//---
+
+class CAwkModulusOperator : public CAwkBinaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkModulusOperator);
+  }
+
+ private:
+  CAwkModulusOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 10; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "%"; }
+};
+
+//---
+
+class CAwkUnaryPlusOperator : public CAwkUnaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkUnaryPlusOperator);
+  }
+
+ private:
+  CAwkUnaryPlusOperator() { }
+
+ public:
+  OpType getType() const { return OpType::UNARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 11; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "+"; }
+};
+
+//---
+
+class CAwkUnaryMinusOperator : public CAwkUnaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkUnaryMinusOperator);
+  }
+
+ private:
+  CAwkUnaryMinusOperator() { }
+
+ public:
+  OpType getType() const { return OpType::UNARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 11; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "-"; }
+};
+
+//---
+
+class CAwkLogicalNotOperator : public CAwkUnaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkLogicalNotOperator);
+  }
+
+ private:
+  CAwkLogicalNotOperator() { }
+
+ public:
+  OpType getType() const { return OpType::UNARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 12; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "!"; }
+};
+
+//---
+
+class CAwkPowerOperator : public CAwkBinaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkPowerOperator);
+  }
+
+ private:
+  CAwkPowerOperator() { }
+
+ public:
+  OpType getType() const { return OpType::BINARY; }
+
+  Direction getDirection() const { return Direction::R_TO_L; }
+
+  uint getPrecedence() const { return 13; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "^"; }
+};
+
+//---
+
+class CAwkPreIncrementOperator : public CAwkOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkPreIncrementOperator);
+  }
+
+ private:
+  CAwkPreIncrementOperator() { }
+
+ public:
+  OpType getType() const { return OpType::UNARY_ASSIGN; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 14; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "++"; }
+};
+
+//---
+
+class CAwkPostIncrementOperator : public CAwkOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkPostIncrementOperator);
+  }
+
+ private:
+  CAwkPostIncrementOperator() { }
+
+ public:
+  OpType getType() const { return OpType::UNARY_ASSIGN; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 14; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "++"; }
+};
+
+//---
+
+class CAwkPreDecrementOperator : public CAwkOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkPreDecrementOperator);
+  }
+
+ private:
+  CAwkPreDecrementOperator() { }
+
+ public:
+  OpType getType() const { return OpType::UNARY_ASSIGN; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 14; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "--"; }
+};
+
+//---
+
+class CAwkPostDecrementOperator : public CAwkOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkPostDecrementOperator);
+  }
+
+ private:
+  CAwkPostDecrementOperator() { }
+
+ public:
+  OpType getType() const { return OpType::UNARY_ASSIGN; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 14; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "--"; }
+};
+
+//---
+
+class CAwkFieldOperator : public CAwkUnaryOperator {
+ public:
+  static CAwkOperatorPtr create() {
+    return CAwkOperatorPtr(new CAwkFieldOperator);
+  }
+
+ private:
+  CAwkFieldOperator() { }
+
+ public:
+  OpType getType() const { return OpType::UNARY; }
+
+  Direction getDirection() const { return Direction::L_TO_R; }
+
+  uint getPrecedence() const { return 15; }
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const { os << "$"; }
+};
+
+#endif
+##concat##CAwkPattern.h
+#ifndef CAWK_PATTERN_H
+#define CAWK_PATTERN_H
+
+#include <CRegExp.h>
+
+class CAwkPattern {
+ protected:
+  friend class CRefPtr<CAwkPattern>;
+
+  CAwkPattern() { }
+
+  virtual ~CAwkPattern() { }
+
+  CAwkPattern *dup() const { return NULL; }
+
+ public:
+  virtual bool exec() = 0;
+
+  virtual void print(std::ostream &os) const = 0;
+
+  friend std::ostream &operator<<(std::ostream &os, const CAwkPattern &th) {
+    th.print(os); return os;
+  }
+};
+
+//---
+
+class CAwkNullPattern : public CAwkPattern {
+ public:
+  static CAwkPatternPtr create() {
+    return CAwkPatternPtr(new CAwkNullPattern);
+  }
+
+ private:
+  CAwkNullPattern() { }
+
+ public:
+  bool exec() { return true; }
+
+  void print(std::ostream &) const { }
+};
+
+//---
+
+class CAwkRegExpPattern : public CAwkPattern {
+ public:
+  static CAwkPatternPtr create(const std::string &regexp) {
+    return CAwkPatternPtr(new CAwkRegExpPattern(regexp));
+  }
+
+ private:
+  CAwkRegExpPattern(const std::string &regexp) :
+   regexp_(regexp) {
+    regexp_.setExtended(true);
+  }
+
+ public:
+  bool exec();
+
+  void print(std::ostream &os) const;
+
+ private:
+  CRegExp regexp_;
+};
+
+//---
+
+class CAwkNegatePattern : public CAwkPattern {
+ public:
+  static CAwkPatternPtr create(CAwkPatternPtr pattern) {
+    return CAwkPatternPtr(new CAwkNegatePattern(pattern));
+  }
+
+ private:
+  CAwkNegatePattern(CAwkPatternPtr pattern) :
+   pattern_(pattern) {
+  }
+
+ public:
+  bool exec();
+
+  void print(std::ostream &os) const;
+
+ private:
+  CAwkPatternPtr pattern_;
+};
+
+//---
+
+class CAwkBeginPattern : public CAwkPattern {
+ public:
+  static CAwkPatternPtr create() {
+    return CAwkPatternPtr(new CAwkBeginPattern);
+  }
+
+ private:
+  CAwkBeginPattern() { }
+
+ public:
+  bool exec();
+
+  void print(std::ostream &os) const { os << "BEGIN"; }
+};
+
+//---
+
+class CAwkEndPattern : public CAwkPattern {
+ public:
+  static CAwkPatternPtr create() {
+    return CAwkPatternPtr(new CAwkEndPattern);
+  }
+
+ private:
+  CAwkEndPattern() { }
+
+ public:
+  bool exec();
+
+  void print(std::ostream &os) const { os << "END"; }
+};
+
+//---
+
+class CAwkExpressionPattern : public CAwkPattern {
+ public:
+  static CAwkPatternPtr create(CAwkExpressionPtr expression) {
+    return CAwkPatternPtr(new CAwkExpressionPattern(expression));
+  }
+
+ private:
+  CAwkExpressionPattern(CAwkExpressionPtr expression) :
+   expression_(expression) {
+  }
+
+ public:
+  bool exec();
+
+  void print(std::ostream &os) const;
+
+ private:
+  CAwkExpressionPtr expression_;
+};
+
+//---
+
+class CAwkCompositeOrPattern : public CAwkPattern {
+ public:
+  static CAwkPatternPtr
+  create(CAwkPatternPtr pattern1, CAwkPatternPtr pattern2) {
+    return CAwkPatternPtr(new CAwkCompositeOrPattern(pattern1, pattern2));
+  }
+
+ private:
+  CAwkCompositeOrPattern(CAwkPatternPtr pattern1, CAwkPatternPtr pattern2) :
+   pattern1_(pattern1), pattern2_(pattern2) {
+  }
+
+ public:
+  bool exec();
+
+  void print(std::ostream &os) const;
+
+ private:
+  CAwkPatternPtr pattern1_;
+  CAwkPatternPtr pattern2_;
+};
+
+//---
+
+class CAwkCompositeAndPattern : public CAwkPattern {
+ public:
+  static CAwkPatternPtr
+  create(CAwkPatternPtr pattern1, CAwkPatternPtr pattern2) {
+    return CAwkPatternPtr(new CAwkCompositeAndPattern(pattern1, pattern2));
+  }
+
+ private:
+  CAwkCompositeAndPattern(CAwkPatternPtr pattern1, CAwkPatternPtr pattern2) :
+   pattern1_(pattern1), pattern2_(pattern2) {
+  }
+
+ public:
+  bool exec();
+
+  void print(std::ostream &os) const;
+
+ private:
+  CAwkPatternPtr pattern1_;
+  CAwkPatternPtr pattern2_;
+};
+
+//---
+
+class CAwkRangePattern : public CAwkPattern {
+ private:
+  enum State {
+    START_STATE,
+    END_STATE,
+    DONE_STATE
+  };
+
+ public:
+  static CAwkPatternPtr
+  create(CAwkPatternPtr pattern1, CAwkPatternPtr pattern2) {
+    return CAwkPatternPtr(new CAwkRangePattern(pattern1, pattern2));
+  }
+
+ private:
+  CAwkRangePattern(CAwkPatternPtr pattern1, CAwkPatternPtr pattern2) :
+   pattern1_(pattern1), pattern2_(pattern2), state_(START_STATE) {
+  }
+
+ public:
+  bool exec();
+
+  void print(std::ostream &os) const;
+
+ public:
+  CAwkPatternPtr pattern1_;
+  CAwkPatternPtr pattern2_;
+  State          state_ { START_STATE };
+};
+
+#endif
+##concat##CAwkTypes.h
+#ifndef CAWK_TYPES_H
+#define CAWK_TYPES_H
+
+#include <CRefPtr.h>
+#include <string>
+#include <vector>
+#include <list>
+#include <map>
+#include <iostream>
+
+using StringVectorT = std::vector<std::string>;
+
+class CAwk;
+class CAwkAction;
+class CAwkActionList;
+class CAwkActionBlock;
+class CAwkExpression;
+class CAwkExpressionTerm;
+class CAwkExprFunction;
+class CAwkFunction;
+class CAwkIFile;
+class CAwkOperator;
+class CAwkOFile;
+class CAwkPattern;
+class CAwkPatternAction;
+class CAwkValue;
+class CAwkVariable;
+class CAwkVariableRef;
+
+using CAwkActionPtr         = CRefPtr<CAwkAction>;
+using CAwkActionListPtr     = CRefPtr<CAwkActionList>;
+using CAwkActionBlockPtr    = CRefPtr<CAwkActionBlock>;
+using CAwkExpressionPtr     = CRefPtr<CAwkExpression>;
+using CAwkExpressionTermPtr = CRefPtr<CAwkExpressionTerm>;
+using CAwkExprFunctionPtr   = CRefPtr<CAwkExprFunction>;
+using CAwkFunctionPtr       = CRefPtr<CAwkFunction>;
+using CAwkIFilePtr          = CRefPtr<CAwkIFile>;
+using CAwkOperatorPtr       = CRefPtr<CAwkOperator>;
+using CAwkOFilePtr          = CRefPtr<CAwkOFile>;
+using CAwkPatternActionPtr  = CRefPtr<CAwkPatternAction>;
+using CAwkPatternPtr        = CRefPtr<CAwkPattern>;
+using CAwkValuePtr          = CRefPtr<CAwkValue>;
+using CAwkVariablePtr       = CRefPtr<CAwkVariable>;
+using CAwkVariableRefPtr    = CRefPtr<CAwkVariableRef>;
+
+using CAwkActionBlockList    = std::vector<CAwkActionBlockPtr>;
+using CAwkExpressionTermList = std::vector<CAwkExpressionTermPtr>;
+using CAwkOperatorList       = std::vector<CAwkOperatorPtr>;
+using CAwkExpressionList     = std::vector<CAwkExpressionPtr>;
+
+#endif
+##concat##CAwkValue.h
+#ifndef CAWK_VALUE_H
+#define CAWK_VALUE_H
+
+#include <CAwkTypes.h>
+
+class CAwkValue : public CAwkExpressionTerm {
+ public:
+  static CAwkValuePtr create(const std::string &value);
+  static CAwkValuePtr create(const char *value);
+  static CAwkValuePtr create(double value);
+  static CAwkValuePtr create(int value);
+  static CAwkValuePtr create(bool value);
+
+ protected:
+  friend class CRefPtr<CAwkValue>;
+
+  explicit CAwkValue(const std::string &value);
+  explicit CAwkValue(const char *value);
+  explicit CAwkValue(double value);
+  explicit CAwkValue(int value);
+  explicit CAwkValue(bool value);
+
+  virtual ~CAwkValue() { }
+
+  CAwkValue *dup() const { return new CAwkValue(*this); }
+
+ public:
+  bool hasValue() const { return true; }
+
+  CAwkValuePtr getValue() const { assert(false); }
+
+  bool isReal   () const;
+  bool isInteger() const;
+  bool isBool   () const;
+
+  std::string getString () const;
+  double      getReal   () const;
+  int         getInteger() const;
+  bool        getBool   () const;
+
+  void setValue  (CAwkValuePtr value);
+  void setString (const std::string &value);
+  void setReal   (double value);
+  void setInteger(int value);
+  void setBool   (bool value);
+
+  int cmp(CAwkValuePtr rhs) const;
+
+  CAwkExpressionTermPtr execute() { assert(false); }
+
+  virtual void print(std::ostream &os) const;
+
+  friend std::ostream &operator<<(std::ostream &os, const CAwkValuePtr th) {
+    th->print(os); return os;
+  }
+
+ protected:
+  const std::string &getTrueStr() const {
+    static std::string true_str = "1";
+
+    return true_str;
+  }
+
+  const std::string &getFalseStr() const {
+    static std::string false_str = "0";
+
+    return false_str;
+  }
+
+ protected:
+  std::string value_;
+};
+
+//----
+
+class CAwkNullValue : public CAwkValue {
+ public:
+  static CAwkValuePtr create() {
+    return CAwkValuePtr(new CAwkNullValue);
+  }
+
+ private:
+  CAwkNullValue() :
+   CAwkValue("") {
+  }
+
+ public:
+  void print(std::ostream &os) const {
+    os << "<null>";
+  }
+};
+
+#endif
+##concat##CAwkVariable.h
+#ifndef CCAWK_VARIABLE_H
+#define CCAWK_VARIABLE_H
+
+#include <CAwkTypes.h>
+
+class CAwkVariableMgr {
+ public:
+  CAwkVariableMgr() { }
+
+  void addVariable(const std::string &name, const std::string &value);
+  void addVariable(CAwkVariablePtr var);
+
+  CAwkVariablePtr getVariable(const std::string &name) const;
+
+  void print(std::ostream &os) const;
+
+ private:
+  using VariableMap = std::map<std::string,CAwkVariablePtr>;
+
+  VariableMap variableMap_;
+};
+
+//----
+
+class CAwkVariable {
+ public:
+  static CAwkVariablePtr create(const std::string &name, const std::string &value);
+  static CAwkVariablePtr create(const std::string &name, const char *value);
+  static CAwkVariablePtr create(const std::string &name, double value);
+  static CAwkVariablePtr create(const std::string &name, int value);
+  static CAwkVariablePtr create(const std::string &name, bool value);
+
+ protected:
+  friend class CRefPtr<CAwkVariable>;
+
+  explicit CAwkVariable(const std::string &name, const std::string &value);
+  explicit CAwkVariable(const std::string &name, const char *value);
+  explicit CAwkVariable(const std::string &name, double value);
+  explicit CAwkVariable(const std::string &name, int value);
+  explicit CAwkVariable(const std::string &name, bool value);
+
+  virtual ~CAwkVariable() { }
+
+  CAwkVariable *dup() const { return new CAwkVariable(*this); }
+
+ public:
+  const std::string &getName() const { return name_; }
+
+  CAwkValuePtr getValue() const override;
+  virtual void setValue(CAwkValuePtr value);
+
+  CAwkValuePtr getIndValue(const std::string &ind) const;
+  virtual void setIndValue(const std::string &ind, CAwkValuePtr value);
+
+  bool isInd(const std::string &ind) const;
+
+  void removeInd(const std::string &ind);
+
+  StringVectorT getIndices() const;
+
+  CAwkExpressionTermPtr execute();
+
+  void print(std::ostream &os) const;
+
+  friend std::ostream &operator<<(std::ostream &os, const CAwkVariable &th) {
+    th.print(os); return os;
+  }
+
+ private:
+  using IndValueMap = std::map<std::string,CAwkValuePtr>;
+
+  std::string  name_;
+  CAwkValuePtr value_;
+  IndValueMap  indValueMap_;
+};
+
+//----
+
+class CAwkARGCVariable {
+ public:
+  static CAwkVariablePtr create() {
+    return CAwkVariable::create("ARGC", 0);
+  }
+};
+
+//----
+
+class CAwkARGVVariable {
+ public:
+  static CAwkVariablePtr create() {
+    return CAwkVariable::create("ARGV", "");
+  }
+};
+
+//----
+
+class CAwkFILENAMEVariable {
+ public:
+  static CAwkVariablePtr create() {
+    return CAwkVariable::create("FILENAME", "");
+  }
+};
+
+//----
+
+class CAwkFNRVariable {
+ public:
+  static CAwkVariablePtr create() {
+    return CAwkVariable::create("FNR", 0);
+  }
+};
+
+//----
+
+class CAwkFSVariable {
+ public:
+  static CAwkVariablePtr create() {
+    return CAwkVariable::create("FS", " ");
+  }
+};
+
+//----
+
+class CAwkNFVariable {
+ public:
+  static CAwkVariablePtr create() {
+    return CAwkVariable::create("NF", 0);
+  }
+};
+
+//----
+
+class CAwkNRVariable {
+ public:
+  static CAwkVariablePtr create() {
+    return CAwkVariable::create("NR", 0);
+  }
+};
+
+//----
+
+class CAwkOFMTVariable {
+ public:
+  static CAwkVariablePtr create() {
+    return CAwkVariable::create("OFMT", "%.6g");
+  }
+};
+
+//----
+
+class CAwkOFSVariable {
+ public:
+  static CAwkVariablePtr create() {
+    return CAwkVariable::create("OFS", " ");
+  }
+};
+
+//----
+
+class CAwkORSVariable {
+ public:
+  static CAwkVariablePtr create() {
+    return CAwkVariable::create("ORS", "\n");
+  }
+};
+
+//----
+
+class CAwkRLENGTHVariable {
+ public:
+  static CAwkVariablePtr create() {
+    return CAwkVariable::create("RLENGTH", 0);
+  }
+};
+
+//----
+
+class CAwkRSVariable {
+ public:
+  static CAwkVariablePtr create() {
+    return CAwkVariable::create("RS", "\n");
+  }
+};
+
+//----
+
+class CAwkRSTARTVariable {
+ public:
+  static CAwkVariablePtr create() {
+    return CAwkVariable::create("RSTART", 0);
+  }
+};
+
+//----
+
+class CAwkSUBSEPVariable {
+ public:
+  static CAwkVariablePtr create() {
+    return CAwkVariable::create("SUBSEP", "\034");
+  }
+};
+
+//----------
+
+#include <CAwkExpression.h>
+
+class CAwkVariableRef : public CAwkExpressionTerm {
+ public:
+  static CAwkVariableRefPtr create(const std::string &name) {
+    return CAwkVariableRefPtr(new CAwkVariableRef(name));
+  }
+
+ protected:
+  friend class CRefPtr<CAwkVariableRef>;
+
+  CAwkVariableRef(const std::string &name) :
+   name_(name) {
+  }
+
+  virtual ~CAwkVariableRef() { }
+
+  CAwkVariableRef *dup() const { return new CAwkVariableRef(*this); }
+
+ public:
+  bool hasValue() const { return true; }
+
+  void instantiate(bool global=false);
+
+  virtual CAwkValuePtr getValue() const;
+
+  virtual void setValue(CAwkValuePtr value);
+
+  CAwkValuePtr getIndValue(const std::string &ind) const;
+  void setIndValue(const std::string &ind, CAwkValuePtr value);
+
+  bool isInd(const std::string &ind) const;
+
+  void removeInd(const std::string &ind);
+
+  StringVectorT getIndices() const;
+
+  virtual void print(std::ostream &os) const;
+
+  virtual CAwkExpressionTermPtr execute();
+
+ private:
+  std::string name_;
+};
+
+//---
+
+class CAwkArrayVariableRef : public CAwkVariableRef {
+ public:
+  static CAwkVariableRefPtr create(const std::string &name,
+                                   const CAwkExpressionList &expressionList) {
+    return CAwkVariableRefPtr(new CAwkArrayVariableRef(name, expressionList));
+  }
+
+ private:
+  CAwkArrayVariableRef(const std::string &name, const CAwkExpressionList &expressionList) :
+   CAwkVariableRef(name), expressionList_(expressionList) {
+  }
+
+ public:
+  CAwkValuePtr getValue() const override;
+
+  void setValue(CAwkValuePtr value) override;
+
+  void print(std::ostream &os) const;
+
+  CAwkExpressionTermPtr execute();
+
+ private:
+  std::string getInd() const;
+
+ private:
+  CAwkExpressionList expressionList_;
+};
+
+//---
+
+class CAwkFieldVariableRef : public CAwkVariableRef {
+ public:
+  static CAwkVariableRefPtr create(int pos) {
+    return CAwkVariableRefPtr(new CAwkFieldVariableRef(pos));
+  }
+
+ private:
+  CAwkFieldVariableRef(int pos) :
+   CAwkVariableRef(""), pos_(pos) {
+  }
+
+ public:
+  CAwkValuePtr getValue() const override;
+
+  void setValue(CAwkValuePtr value) override;
+
+  void print(std::ostream &os) const;
+
+  CAwkExpressionTermPtr execute();
+
+ private:
+  int pos_ { 0 };
+};
+
+#endif

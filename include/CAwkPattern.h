@@ -5,15 +5,13 @@
 
 class CAwkPattern {
  protected:
-  friend class CRefPtr<CAwkPattern>;
-
   CAwkPattern() { }
-
-  virtual ~CAwkPattern() { }
 
   CAwkPattern *dup() const { return NULL; }
 
  public:
+  virtual ~CAwkPattern() { }
+
   virtual bool exec() = 0;
 
   virtual void print(std::ostream &os) const = 0;
@@ -35,9 +33,9 @@ class CAwkNullPattern : public CAwkPattern {
   CAwkNullPattern() { }
 
  public:
-  bool exec() { return true; }
+  bool exec() override { return true; }
 
-  void print(std::ostream &) const { }
+  void print(std::ostream &) const override { }
 };
 
 //---
@@ -55,9 +53,9 @@ class CAwkRegExpPattern : public CAwkPattern {
   }
 
  public:
-  bool exec();
+  bool exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 
  private:
   CRegExp regexp_;
@@ -77,9 +75,9 @@ class CAwkNegatePattern : public CAwkPattern {
   }
 
  public:
-  bool exec();
+  bool exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 
  private:
   CAwkPatternPtr pattern_;
@@ -97,9 +95,9 @@ class CAwkBeginPattern : public CAwkPattern {
   CAwkBeginPattern() { }
 
  public:
-  bool exec();
+  bool exec() override;
 
-  void print(std::ostream &os) const { os << "BEGIN"; }
+  void print(std::ostream &os) const override { os << "BEGIN"; }
 };
 
 //---
@@ -114,9 +112,9 @@ class CAwkEndPattern : public CAwkPattern {
   CAwkEndPattern() { }
 
  public:
-  bool exec();
+  bool exec() override;
 
-  void print(std::ostream &os) const { os << "END"; }
+  void print(std::ostream &os) const override { os << "END"; }
 };
 
 //---
@@ -133,9 +131,9 @@ class CAwkExpressionPattern : public CAwkPattern {
   }
 
  public:
-  bool exec();
+  bool exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 
  private:
   CAwkExpressionPtr expression_;
@@ -156,9 +154,9 @@ class CAwkCompositeOrPattern : public CAwkPattern {
   }
 
  public:
-  bool exec();
+  bool exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 
  private:
   CAwkPatternPtr pattern1_;
@@ -180,9 +178,9 @@ class CAwkCompositeAndPattern : public CAwkPattern {
   }
 
  public:
-  bool exec();
+  bool exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 
  private:
   CAwkPatternPtr pattern1_;
@@ -211,9 +209,9 @@ class CAwkRangePattern : public CAwkPattern {
   }
 
  public:
-  bool exec();
+  bool exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 
  public:
   CAwkPatternPtr pattern1_;

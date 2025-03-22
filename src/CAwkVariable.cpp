@@ -140,9 +140,7 @@ void
 CAwkVariable::
 setValue(CAwkValuePtr value)
 {
-  value_ = value;
-
-  value_.uniquify();
+  value_ = CAwkValuePtr(value->dup());
 }
 
 void
@@ -195,7 +193,7 @@ CAwkExpressionTermPtr
 CAwkVariable::
 execute()
 {
-  return getValue().refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(getValue());
 }
 
 void
@@ -206,6 +204,11 @@ print(std::ostream &os) const
 }
 
 //-----------
+
+CAwkVariableRef::
+~CAwkVariableRef()
+{
+}
 
 void
 CAwkVariableRef::
@@ -271,7 +274,7 @@ CAwkExpressionTermPtr
 CAwkVariableRef::
 execute()
 {
-  return getValue().refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(getValue());
 }
 
 void
@@ -305,7 +308,7 @@ CAwkExpressionTermPtr
 CAwkArrayVariableRef::
 execute()
 {
-  return getValue().refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(getValue());
 }
 
 void
@@ -377,5 +380,5 @@ CAwkExpressionTermPtr
 CAwkFieldVariableRef::
 execute()
 {
-  return getValue().refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(getValue());
 }

@@ -59,7 +59,7 @@ class CAwkExecuteSubStack {
 
   void unstackExpression();
 
-  bool hasLastOp() const { return lastOp_.isValid(); }
+  bool hasLastOp() const { return !!lastOp_; }
 
   CAwkVariableRefPtr popVariableRef();
 

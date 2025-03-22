@@ -333,14 +333,14 @@ getLineField(uint pos) const
   if (pos == 0)
     return line_;
 
-  if (! lineFields_.isValid()) {
+  if (! lineFields_) {
     auto *th = const_cast<CAwk *>(this);
 
     th->setLineFields();
   }
 
-  if (pos <= lineFields_.getValue().size())
-    return (lineFields_.getValue())[pos - 1];
+  if (pos <= lineFields_.value().size())
+    return (lineFields_.value())[pos - 1];
   else
     return null_str;
 }
@@ -357,17 +357,17 @@ setLineField(uint pos, const std::string &value)
     return;
   }
 
-  if (! lineFields_.isValid())
+  if (! lineFields_)
     setLineFields();
 
-  StringVectorT &fields = lineFields_.getValue();
+  StringVectorT &fields = lineFields_.value();
 
   if (pos > fields.size()) {
     while (pos > fields.size())
       fields.push_back("");
 
     getVariable("NF")->getValue()->setInteger(
-      lineFields_.getValue().size());
+      lineFields_.value().size());
   }
 
   fields[pos - 1] = value;
@@ -398,17 +398,17 @@ setLineFields()
 
   CStrUtil::addFields(line_, fields, fs, /*skipEmpty*/true);
 
-  lineFields_.setValue(fields);
+  lineFields_ = fields;
 
   getVariable("NF")->getValue()->setInteger(
-    lineFields_.getValue().size());
+    lineFields_.value().size());
 }
 
 CAwkValuePtr
 CAwk::
 getReturnValue() const
 {
-  if (currentBlock_.isValid())
+  if (currentBlock_)
     return currentBlock_->getReturnValue();
   else
     return returnValue_;
@@ -418,7 +418,7 @@ void
 CAwk::
 setReturnValue(CAwkValuePtr returnValue)
 {
-  if (currentBlock_.isValid())
+  if (currentBlock_)
     currentBlock_->setReturnValue(returnValue);
   else
     returnValue_ = returnValue;
@@ -1345,7 +1345,7 @@ parseExpression(CAwkExpressionPtr *expression)
     if (! parseExpressionTerm(&term, expression1->isValue()))
       return false;
 
-    if (! term.isValid())
+    if (! term)
       break;
 
     expression1->pushTerm(term);
@@ -1379,7 +1379,7 @@ parseExpressionValue(CAwkExpressionPtr *expression)
     if (! parseExpressionTerm(&term, expression1->isValue()))
       return false;
 
-    if (! term.isValid())
+    if (! term)
       break;
 
     expression1->pushTerm(term);
@@ -1412,7 +1412,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
     if (! parseString(&value))
       return false;
 
-    *term = value.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(value);
   }
   // <number>
   else if (isdigit(c) || c == '.') {
@@ -1421,7 +1421,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
     if (! parseNumber(&real))
       return false;
 
-    *term = real.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(real);
   }
   // ( <pattern> )
   else if (c == '(') {
@@ -1443,7 +1443,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
     parser_->skipChar();
 
-    *term = expression2.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(expression2);
   }
   else if (c == '/' && ! isValue) {
     std::string regexp;
@@ -1454,7 +1454,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
     // TODO: regexp value ?
     auto value = CAwkValue::create(regexp);
 
-    *term = value.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(value);
   }
   // getline var [< file]
   else if (parser_->isWord("getline")) {
@@ -1488,7 +1488,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
     auto op = CAwkNotRegExpOperator::create();
 
-    *term = op.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(op);
   }
   // <ppattern> !~ <regexp>
   // <ppattern> !~ <ppattern>
@@ -1497,11 +1497,11 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
     auto op = CAwkRegExpOperator::create();
 
-    *term = op.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(op);
   }
 
   // <ppattern> ? <ppattern> : <ppattern>
-  else if (isValue && strchr("?:", c) != 0) {
+  else if (isValue && strchr("?:", c) != nullptr) {
     parser_->skipChar();
 
     CAwkOperatorPtr op;
@@ -1511,7 +1511,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
     else
       op = CAwkColonOperator::create();
 
-    *term = op.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(op);
   }
   // <ppattern> || <ppattern>
   else if (parser_->isString("||")) {
@@ -1519,7 +1519,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
     auto op = CAwkLogicalOrOperator::create();
 
-    *term = op.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(op);
   }
   // <ppattern> && <ppattern>
   else if (parser_->isString("&&")) {
@@ -1527,7 +1527,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
     auto op = CAwkLogicalAndOperator::create();
 
-    *term = op.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(op);
   }
   // <pattern == pattern
   else if (parser_->isString("==")) {
@@ -1535,7 +1535,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
     auto op = CAwkEqualsOperator::create();
 
-    *term = op.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(op);
   }
   // <pattern >= pattern
   else if (parser_->isString(">=")) {
@@ -1543,7 +1543,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
     auto op = CAwkGreaterEqualsOperator::create();
 
-    *term = op.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(op);
   }
   // <pattern >  pattern
   else if (parser_->isString(">")) {
@@ -1551,7 +1551,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
     auto op = CAwkGreaterOperator::create();
 
-    *term = op.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(op);
   }
   // <pattern <= pattern
   else if (parser_->isString("<=")) {
@@ -1559,7 +1559,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
     auto op = CAwkLessEqualsOperator::create();
 
-    *term = op.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(op);
   }
   // <pattern <  pattern
   else if (parser_->isString("<")) {
@@ -1567,7 +1567,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
     auto op = CAwkLessOperator::create();
 
-    *term = op.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(op);
   }
   // <pattern != pattern
   else if (parser_->isString("!=")) {
@@ -1575,7 +1575,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
     auto op = CAwkNotEqualsOperator::create();
 
-    *term = op.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(op);
   }
   // <ppattern> in <varname>
   // ( <pattern_list> ) in <varname>
@@ -1584,7 +1584,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
     auto op = CAwkInOperator::create();
 
-    *term = op.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(op);
   }
 
   // <ppattern> <term>
@@ -1605,7 +1605,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
     else
       op = CAwkPreIncrementOperator::create();
 
-    *term = op.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(op);
   }
   // <var> --
   // -- <var>
@@ -1619,7 +1619,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
     else
       op = CAwkPreDecrementOperator::create();
 
-    *term = op.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(op);
   }
   // <term> = <term>
   // <term> += <term>
@@ -1634,24 +1634,24 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
   // <term> / <term>
   // <term> % <term>
   // <term> ^ <term>
-  else if (isValue && strchr("=+-*/%^", c) != 0) {
+  else if (isValue && strchr("=+-*/%^", c) != nullptr) {
     CAwkOperatorPtr op;
 
     if (! parseOperator(&op, isValue))
       return false;
 
-    *term = op.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(op);
   }
   // + <term>
   // - <term>
   // ! <term>
-  else if (! isValue && strchr("+-!", c) != 0) {
+  else if (! isValue && strchr("+-!", c) != nullptr) {
     CAwkOperatorPtr op;
 
     if (! parseOperator(&op, isValue))
       return false;
 
-    *term = op.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(op);
   }
   // $ <term>
   else if (c == '$') {
@@ -1659,7 +1659,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
     auto op = CAwkFieldOperator::create();
 
-    *term = op.refCast<CAwkExpressionTerm>();
+    *term = std::static_pointer_cast<CAwkExpressionTerm>(op);
   }
 
   // <builtin> ( )
@@ -1692,7 +1692,7 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
       auto function = CAwkExprFunction::create(this, name, expressionList);
 
-      *term = function.refCast<CAwkExpressionTerm>();
+      *term = std::static_pointer_cast<CAwkExpressionTerm>(function);
     }
     else if (parser_->isChar('[')) {
       parser_->skipChar();
@@ -1713,12 +1713,12 @@ parseExpressionTerm(CAwkExpressionTermPtr *term, bool isValue)
 
       auto var = CAwkArrayVariableRef::create(name, expressionList);
 
-      *term = var.refCast<CAwkExpressionTerm>();
+      *term = std::static_pointer_cast<CAwkExpressionTerm>(var);
     }
     else {
       auto var = CAwkVariableRef::create(name);
 
-      *term = var.refCast<CAwkExpressionTerm>();
+      *term = std::static_pointer_cast<CAwkExpressionTerm>(var);
     }
   }
   else {
@@ -2207,8 +2207,8 @@ CAwkValuePtr
 CAwk::
 getValue(CAwkExpressionTermPtr term)
 {
-  if      (term.canCast<CAwkValue>())
-    return term.refCast<CAwkValue>();
+  if      (dynamic_cast<CAwkValue *>(term.get()) != nullptr)
+    return std::static_pointer_cast<CAwkValue>(term);
   else if (term->hasValue())
     return term->getValue();
   else
@@ -2221,8 +2221,8 @@ getVariableRef(CAwkExpressionTermPtr term)
 {
   auto term1 = term->execute();
 
-  if (term1.canCast<CAwkVariableRef>())
-    return term1.refCast<CAwkVariableRef>();
+  if (dynamic_cast<CAwkVariableRef *>(term1.get()) != nullptr)
+    return std::static_pointer_cast<CAwkVariableRef>(term1);
   else
     return CAwkVariableRefPtr();
 }
@@ -2234,10 +2234,10 @@ getVariable(const std::string &name, bool create, bool global) const
   CAwkVariablePtr variable;
 
   // check if variable already exists in current block or any parent block
-  if (currentBlock_.isValid()) {
+  if (currentBlock_) {
     variable = currentBlock_->getVariable(name);
 
-    if (variable.isValid())
+    if (variable)
       return variable;
 
     auto p1 = blockStack_.rbegin();
@@ -2246,7 +2246,7 @@ getVariable(const std::string &name, bool create, bool global) const
     for ( ; p1 != p2; ++p1) {
       variable = (*p1)->getVariable(name);
 
-      if (variable.isValid())
+      if (variable)
         return variable;
     }
   }
@@ -2256,7 +2256,7 @@ getVariable(const std::string &name, bool create, bool global) const
   // get from global scope
   variable = variableMgr_.getVariable(name);
 
-  if (variable.isValid())
+  if (variable)
     return variable;
 
   //---
@@ -2274,7 +2274,7 @@ CAwkVariablePtr
 CAwk::
 addVariable(const std::string &name, bool global)
 {
-  if (! global && currentBlock_.isValid())
+  if (! global && currentBlock_)
     return currentBlock_->addVariable(name);
 
   //---
@@ -2325,7 +2325,7 @@ void
 CAwk::
 startBlock(CAwkActionBlockPtr block)
 {
-  if (currentBlock_.isValid())
+  if (currentBlock_)
     blockStack_.push_back(currentBlock_);
 
   currentBlock_ = block;

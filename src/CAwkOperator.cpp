@@ -9,14 +9,14 @@ execute()
 
   auto var = CAwkInst->getExecuteStack().popVariableRef();
 
-  if (! var.isValid()) {
+  if (! var) {
     CAwkInst->error("Lhs is not a variable");
-    return value.refCast<CAwkExpressionTerm>();
+    return std::static_pointer_cast<CAwkExpressionTerm>(value);
   }
 
   var->setValue(value);
 
-  return var.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(var);
 }
 
 CAwkExpressionTermPtr
@@ -27,9 +27,9 @@ execute()
 
   auto var = CAwkInst->getExecuteStack().popVariableRef();
 
-  if (! var.isValid()) {
+  if (! var) {
     CAwkInst->error("Lhs is not a variable");
-    return value2.refCast<CAwkExpressionTerm>();
+    return std::static_pointer_cast<CAwkExpressionTerm>(value2);
   }
 
   auto value1 = var->getValue();
@@ -45,7 +45,7 @@ execute()
 
   var->setValue(value);
 
-  return var.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(var);
 }
 
 CAwkExpressionTermPtr
@@ -56,9 +56,9 @@ execute()
 
   auto var = CAwkInst->getExecuteStack().popVariableRef();
 
-  if (! var.isValid()) {
+  if (! var) {
     CAwkInst->error("Lhs is not a variable");
-    return value2.refCast<CAwkExpressionTerm>();
+    return std::static_pointer_cast<CAwkExpressionTerm>(value2);
   }
 
   auto value1 = var->getValue();
@@ -74,7 +74,7 @@ execute()
 
   var->setValue(value);
 
-  return var.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(var);
 }
 
 CAwkExpressionTermPtr
@@ -85,9 +85,9 @@ execute()
 
   auto var = CAwkInst->getExecuteStack().popVariableRef();
 
-  if (! var.isValid()) {
+  if (! var) {
     CAwkInst->error("Lhs is not a variable");
-    return value2.refCast<CAwkExpressionTerm>();
+    return std::static_pointer_cast<CAwkExpressionTerm>(value2);
   }
 
   auto value1 = var->getValue();
@@ -103,7 +103,7 @@ execute()
 
   var->setValue(value);
 
-  return var.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(var);
 }
 
 CAwkExpressionTermPtr
@@ -114,9 +114,9 @@ execute()
 
   auto var = CAwkInst->getExecuteStack().popVariableRef();
 
-  if (! var.isValid()) {
+  if (! var) {
     CAwkInst->error("Lhs is not a variable");
-    return value2.refCast<CAwkExpressionTerm>();
+    return std::static_pointer_cast<CAwkExpressionTerm>(value2);
   }
 
   auto value1 = var->getValue();
@@ -130,7 +130,7 @@ execute()
 
   var->setValue(value);
 
-  return var.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(var);
 }
 
 CAwkExpressionTermPtr
@@ -141,9 +141,9 @@ execute()
 
   auto var = CAwkInst->getExecuteStack().popVariableRef();
 
-  if (! var.isValid()) {
+  if (! var) {
     CAwkInst->error("Lhs is not a variable");
-    return value2.refCast<CAwkExpressionTerm>();
+    return std::static_pointer_cast<CAwkExpressionTerm>(value2);
   }
 
   auto value1 = var->getValue();
@@ -163,7 +163,7 @@ execute()
 
   var->setValue(value);
 
-  return var.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(var);
 }
 
 CAwkExpressionTermPtr
@@ -174,9 +174,9 @@ execute()
 
   auto var = CAwkInst->getExecuteStack().popVariableRef();
 
-  if (! var.isValid()) {
+  if (! var) {
     CAwkInst->error("Lhs is not a variable");
-    return value2.refCast<CAwkExpressionTerm>();
+    return std::static_pointer_cast<CAwkExpressionTerm>(value2);
   }
 
   auto value1 = var->getValue();
@@ -194,7 +194,7 @@ execute()
 
   var->setValue(value);
 
-  return var.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(var);
 }
 
 CAwkExpressionTermPtr
@@ -224,7 +224,7 @@ execute()
 
   auto result = CAwkValue::create(bool1 || bool2);
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -236,7 +236,7 @@ execute()
 
   auto result = CAwkValue::create(bool1 && bool2);
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -247,7 +247,7 @@ execute()
 
   CAwkValuePtr result;
 
-  if (! var.isValid()) {
+  if (! var) {
     CAwkInst->error("value is not a variable");
 
     result = CAwkValue::create("0");
@@ -260,7 +260,7 @@ execute()
     result = CAwkValue::create(flag);
   }
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -278,7 +278,7 @@ execute()
 
   auto result = CAwkValue::create(match);
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -296,7 +296,7 @@ execute()
 
   auto result = CAwkValue::create(! match);
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -308,7 +308,7 @@ execute()
 
   auto result = CAwkValue::create(value1->cmp(value2) < 0);
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -320,7 +320,7 @@ execute()
 
   auto result = CAwkValue::create(value1->cmp(value2) <= 0);
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -332,7 +332,7 @@ execute()
 
   auto result = CAwkValue::create(value1->cmp(value2) == 0);
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -344,7 +344,7 @@ execute()
 
   auto result = CAwkValue::create(value1->cmp(value2) != 0);
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -356,7 +356,7 @@ execute()
 
   auto result = CAwkValue::create(value1->cmp(value2) >= 0);
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -368,7 +368,7 @@ execute()
 
   auto result = CAwkValue::create(value1->cmp(value2) > 0);
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -380,7 +380,7 @@ execute()
 
   auto result = CAwkValue::create(str1 + str2);
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -399,7 +399,7 @@ execute()
   else
     result = CAwkValue::create("0");
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -418,7 +418,7 @@ execute()
   else
     result = CAwkValue::create("0");
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -437,7 +437,7 @@ execute()
   else
     result = CAwkValue::create("0");
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -454,7 +454,7 @@ execute()
   else
     result = CAwkValue::create("0");
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -477,7 +477,7 @@ execute()
   else
     result = CAwkValue::create("0");
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -495,7 +495,7 @@ execute()
   else
     result = CAwkValue::create("0");
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -513,7 +513,7 @@ execute()
   else
     result = CAwkValue::create("0");
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -524,7 +524,7 @@ execute()
 
   auto result = CAwkValue::create(! bool1);
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -545,7 +545,7 @@ execute()
   else
     result = CAwkValue::create("0");
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }
 
 CAwkExpressionTermPtr
@@ -556,10 +556,10 @@ execute()
 
   CAwkValuePtr value2;
 
-  if (! var.isValid()) {
+  if (! var) {
     CAwkInst->error("value is not a variable");
     value2 = CAwkValue::create("0");
-    return value2.refCast<CAwkExpressionTerm>();
+    return std::static_pointer_cast<CAwkExpressionTerm>(value2);
   }
 
   auto value1 = var->getValue();
@@ -573,7 +573,7 @@ execute()
 
   var->setValue(value2);
 
-  return value2.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(value2);
 }
 
 CAwkExpressionTermPtr
@@ -584,10 +584,10 @@ execute()
 
   CAwkValuePtr value2;
 
-  if (! var.isValid()) {
+  if (! var) {
     CAwkInst->error("value is not a variable");
     value2 = CAwkValue::create("0");
-    return value2.refCast<CAwkExpressionTerm>();
+    return std::static_pointer_cast<CAwkExpressionTerm>(value2);
   }
 
   auto value1 = var->getValue();
@@ -607,7 +607,7 @@ execute()
 
   var->setValue(value2);
 
-  return value1.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(value1);
 }
 
 CAwkExpressionTermPtr
@@ -618,10 +618,10 @@ execute()
 
   CAwkValuePtr value2;
 
-  if (! var.isValid()) {
+  if (! var) {
     CAwkInst->error("value is not a variable");
     value2 = CAwkValue::create("0");
-    return value2.refCast<CAwkExpressionTerm>();
+    return std::static_pointer_cast<CAwkExpressionTerm>(value2);
   }
 
   auto value1 = var->getValue();
@@ -635,7 +635,7 @@ execute()
 
   var->setValue(value2);
 
-  return value2.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(value2);
 }
 
 CAwkExpressionTermPtr
@@ -646,10 +646,10 @@ execute()
 
   CAwkValuePtr value2;
 
-  if (! var.isValid()) {
+  if (! var) {
     CAwkInst->error("value is not a variable");
     value2 = CAwkValue::create("0");
-    return value2.refCast<CAwkExpressionTerm>();
+    return std::static_pointer_cast<CAwkExpressionTerm>(value2);
   }
 
   auto value1 = var->getValue();
@@ -669,7 +669,7 @@ execute()
 
   var->setValue(value2);
 
-  return value1.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(value1);
 }
 
 CAwkExpressionTermPtr
@@ -688,5 +688,5 @@ execute()
   else
     result = CAwkVariableRef::create(value->getString());
 
-  return result.refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(result);
 }

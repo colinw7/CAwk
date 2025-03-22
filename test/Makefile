@@ -30,12 +30,13 @@ LFLAGS = \
 -L../../CCommand/lib \
 -L../../CReadLine/lib \
 -L../../CFile/lib \
+-L../../CMath/lib \
 -L../../CStrUtil/lib \
 -L../../CRegExp/lib \
 -L../../COS/lib \
 
 LIBS = \
--lCAwk -lCCommand -lCReadLine -lCFile -lCStrUtil -lCRegExp -lCOS \
+-lCAwk -lCCommand -lCReadLine -lCFile -lCMath -lCStrUtil -lCRegExp -lCOS \
 -lreadline -ltre -lncurses
 
 clean:

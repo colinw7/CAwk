@@ -7,6 +7,11 @@ CAwkExpression()
 {
 }
 
+CAwkExpression::
+~CAwkExpression()
+{
+}
+
 CAwkValuePtr
 CAwkExpression::
 getValue() const
@@ -22,21 +27,21 @@ void
 CAwkExpression::
 pushTerm(CAwkExpressionTermPtr term)
 {
-  if      (term.canCast<CAwkOperator>()) {
-    auto op = term.refCast<CAwkOperator>();
+  if      (dynamic_cast<CAwkOperator *>(term.get()) != nullptr) {
+    auto op = std::static_pointer_cast<CAwkOperator>(term);
 
     if (value_ && op->isUnary()) {
-      if ((op.cast<CAwkPostIncrementOperator>() == nullptr) &&
-          (op.cast<CAwkPostDecrementOperator>() == nullptr)) {
+      if ((dynamic_cast<CAwkPostIncrementOperator *>(op.get()) == nullptr) &&
+          (dynamic_cast<CAwkPostDecrementOperator *>(op.get()) == nullptr)) {
         auto op1 = CAwkConcatOperator::create();
 
-        pushTerm(op1.refCast<CAwkExpressionTerm>());
+        pushTerm(std::static_pointer_cast<CAwkExpressionTerm>(op1));
       }
     }
 
     termList_.push_back(term);
 
-    if (lastOp_.isValid())
+    if (lastOp_)
       opStack_.push_back(lastOp_);
 
     lastOp_ = op;
@@ -46,15 +51,15 @@ pushTerm(CAwkExpressionTermPtr term)
     if (value_) {
       auto op = CAwkConcatOperator::create();
 
-      pushTerm(op.refCast<CAwkExpressionTerm>());
+      pushTerm(std::static_pointer_cast<CAwkExpressionTerm>(op));
     }
 
     termList_.push_back(term);
 
     value_ = true;
   }
-  else if (term.canCast<CAwkGetLineExpr>()) {
-    auto expr = term.refCast<CAwkGetLineExpr>();
+  else if (dynamic_cast<CAwkGetLineExpr *>(term.get()) != nullptr) {
+    auto expr = std::static_pointer_cast<CAwkGetLineExpr>(term);
 
     auto term1 = expr->execute();
 
@@ -85,8 +90,8 @@ execute()
   for ( ; p1 != p2; ++p1) {
     auto term = *p1;
 
-    if      (term.canCast<CAwkOperator>()) {
-      auto op = term.refCast<CAwkOperator>();
+    if      (dynamic_cast<CAwkOperator *>(term.get()) != nullptr) {
+      auto op = std::static_pointer_cast<CAwkOperator>(term);
 
       while (executeStack.checkUnstack(op)) {
         executeStack.unstackExpression();
@@ -97,17 +102,17 @@ execute()
 
       executeStack.addTerm(op);
     }
-    else if (term.canCast<CAwkExprFunction>()) {
-      auto func = term.refCast<CAwkExprFunction>();
+    else if (dynamic_cast<CAwkExprFunction *>(term.get()) != nullptr) {
+      auto func = std::static_pointer_cast<CAwkExprFunction>(term);
 
       auto term1 = func->execute();
 
-      if (term1.isValid())
+      if (term1)
         executeStack.addTerm(term1);
       else {
         auto result = CAwkValue::create("");
 
-        executeStack.addTerm(result.refCast<CAwkExpressionTerm>());
+        executeStack.addTerm(std::static_pointer_cast<CAwkExpressionTerm>(result));
       }
     }
     else if (term->hasValue()) {
@@ -154,7 +159,7 @@ getValue() const
 {
   std::string line;
 
-  if (file_.isValid()) {
+  if (file_) {
     std::string str;
 
     file_->read(line);
@@ -167,7 +172,7 @@ getValue() const
 
   auto value = CAwkValue::create(line);
 
-  if (var_.isValid()) {
+  if (var_) {
     var_->setValue(value);
   }
 
@@ -178,7 +183,7 @@ CAwkExpressionTermPtr
 CAwkGetLineExpr::
 execute()
 {
-  return getValue().refCast<CAwkExpressionTerm>();
+  return std::static_pointer_cast<CAwkExpressionTerm>(getValue());
 }
 
 void
@@ -187,9 +192,9 @@ print(std::ostream &os) const
 {
   os << "getline";
 
-  if (var_.isValid())
+  if (var_)
     os << " " << *var_;
 
-  if (file_.isValid())
+  if (file_)
     os << " " << *file_;
 }

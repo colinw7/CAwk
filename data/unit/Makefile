@@ -1,7 +1,7 @@
 .SILENT:
 
-#CC = g++
-CC = clang++
+CC = g++
+#CC = clang++
 
 CFLAGS = \
 -Wall -pedantic -g \

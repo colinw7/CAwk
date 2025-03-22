@@ -5,17 +5,15 @@
 
 class CAwkFunction {
  protected:
-  friend class CRefPtr<CAwkFunction>;
-
   CAwkFunction(CAwk *awk, const std::string &name) :
    awk_(awk), name_(name) {
   }
 
-  virtual ~CAwkFunction() { }
-
   CAwkFunction *dup() const { return NULL; }
 
  public:
+  virtual ~CAwkFunction() { }
+
   const std::string &getName() const { return name_; }
 
   virtual CAwkValuePtr exec(const CAwkExpressionTermList &values) = 0;
@@ -41,17 +39,15 @@ class CAwkExprFunction : public CAwkExpressionTerm {
   }
 
  private:
-  friend class CRefPtr<CAwkExprFunction>;
-
   CAwkExprFunction(CAwk *awk, const std::string &name, const CAwkExpressionList &expressionList) :
    awk_(awk), name_(name), expressionList_(expressionList) {
   }
 
- ~CAwkExprFunction() { }
-
   CAwkExprFunction *dup() const { return new CAwkExprFunction(*this); }
 
  public:
+ ~CAwkExprFunction() { }
+
   bool hasValue() const override { return true; }
 
   CAwkValuePtr getValue() const override;
@@ -81,9 +77,9 @@ class CAwkParseFunction : public CAwkFunction {
    CAwkFunction(awk, name), args_(args), actionList_(actionList) {
   }
 
+ public:
  ~CAwkParseFunction() { }
 
- public:
   CAwkValuePtr exec(const CAwkExpressionTermList &values) override;
 
   void print(std::ostream &os) const override;

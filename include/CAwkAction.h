@@ -103,8 +103,6 @@ class CAwkIFile {
   }
 
  private:
-  friend class CRefPtr<CAwkIFile>;
-
   CAwkIFile(CAwkExpressionPtr file, Type type) :
    file_(file), type_(type) {
   }
@@ -142,8 +140,6 @@ class CAwkOFile {
   }
 
  private:
-  friend class CRefPtr<CAwkOFile>;
-
   CAwkOFile(CAwkExpressionPtr expression, Type type) :
    expression_(expression), type_(type) {
   }
@@ -167,15 +163,13 @@ class CAwkOFile {
 
 class CAwkAction {
  protected:
-  friend class CRefPtr<CAwkAction>;
-
   CAwkAction() { }
-
-  virtual ~CAwkAction() { }
 
   CAwkAction *dup() const { return nullptr; }
 
  public:
+  virtual ~CAwkAction() { }
+
   virtual void exec() = 0;
 
   virtual void print(std::ostream &os) const = 0;
@@ -195,9 +189,9 @@ class CAwkNullAction : public CAwkAction {
   CAwkNullAction() { }
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &) const { }
+  void print(std::ostream &) const override { }
 };
 
 class CAwkBreakAction : public CAwkAction {
@@ -210,9 +204,9 @@ class CAwkBreakAction : public CAwkAction {
   CAwkBreakAction() { }
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &os) const { os << "break" << std::endl; }
+  void print(std::ostream &os) const override { os << "break" << std::endl; }
 };
 
 class CAwkContinueAction : public CAwkAction {
@@ -225,9 +219,9 @@ class CAwkContinueAction : public CAwkAction {
   CAwkContinueAction() { }
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &os) const { os << "continue" << std::endl; }
+  void print(std::ostream &os) const override { os << "continue" << std::endl; }
 };
 
 class CAwkNextAction : public CAwkAction {
@@ -240,9 +234,9 @@ class CAwkNextAction : public CAwkAction {
   CAwkNextAction() { }
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &os) const { os << "next" << std::endl; }
+  void print(std::ostream &os) const override { os << "next" << std::endl; }
 };
 
 class CAwkReturnAction : public CAwkAction {
@@ -260,9 +254,9 @@ class CAwkReturnAction : public CAwkAction {
   }
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 };
 
 class CAwkExitAction : public CAwkAction {
@@ -280,9 +274,9 @@ class CAwkExitAction : public CAwkAction {
   }
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 };
 
 class CAwkDeleteAction : public CAwkAction {
@@ -302,9 +296,9 @@ class CAwkDeleteAction : public CAwkAction {
   }
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 };
 
 class CAwkIfAction : public CAwkAction {
@@ -322,9 +316,9 @@ class CAwkIfAction : public CAwkAction {
   CAwkIfAction(CAwkExpressionPtr expression, CAwkActionPtr action);
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 };
 
 class CAwkIfElseAction : public CAwkAction {
@@ -344,9 +338,9 @@ class CAwkIfElseAction : public CAwkAction {
                    CAwkActionPtr action1, CAwkActionPtr action2);
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 };
 
 class CAwkForAction : public CAwkAction {
@@ -369,9 +363,9 @@ class CAwkForAction : public CAwkAction {
                 CAwkExpressionPtr expression3, CAwkActionPtr action);
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 };
 
 class CAwkForInAction : public CAwkAction {
@@ -391,9 +385,9 @@ class CAwkForInAction : public CAwkAction {
                   CAwkActionPtr action);
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 };
 
 class CAwkWhileAction : public CAwkAction {
@@ -411,9 +405,9 @@ class CAwkWhileAction : public CAwkAction {
   CAwkWhileAction(CAwkExpressionPtr expression, CAwkActionPtr action);
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 };
 
 class CAwkDoWhileAction : public CAwkAction {
@@ -431,9 +425,9 @@ class CAwkDoWhileAction : public CAwkAction {
   CAwkDoWhileAction(CAwkActionPtr action, CAwkExpressionPtr expression);
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 };
 
 class CAwkActionListAction : public CAwkAction {
@@ -451,9 +445,9 @@ class CAwkActionListAction : public CAwkAction {
   }
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 };
 
 class CAwkExpressionAction : public CAwkAction {
@@ -471,9 +465,9 @@ class CAwkExpressionAction : public CAwkAction {
   }
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 };
 
 class CAwkCloseAction : public CAwkAction {
@@ -491,9 +485,9 @@ class CAwkCloseAction : public CAwkAction {
   }
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 };
 
 class CAwkGetLineAction : public CAwkAction {
@@ -512,9 +506,9 @@ class CAwkGetLineAction : public CAwkAction {
   }
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 };
 
 class CAwkPrintAction : public CAwkAction {
@@ -534,9 +528,9 @@ class CAwkPrintAction : public CAwkAction {
   }
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 };
 
 class CAwkPrintFAction : public CAwkAction {
@@ -556,9 +550,9 @@ class CAwkPrintFAction : public CAwkAction {
   }
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 };
 
 class CAwkSystemAction : public CAwkAction {
@@ -576,9 +570,9 @@ class CAwkSystemAction : public CAwkAction {
   }
 
  public:
-  void exec();
+  void exec() override;
 
-  void print(std::ostream &os) const;
+  void print(std::ostream &os) const override;
 };
 
 class CAwkActionList {
@@ -596,8 +590,6 @@ class CAwkActionList {
   }
 
  private:
-  friend class CRefPtr<CAwkActionList>;
-
   CAwkActionList(Type type) : type_(type) { }
 
   CAwkActionList *dup() const { return new CAwkActionList(*this); }
@@ -630,8 +622,6 @@ class CAwkActionBlock {
   }
 
  private:
-  friend class CRefPtr<CAwkActionBlock>;
-
   CAwkActionBlock(CAwkActionListPtr actionList);
 
   CAwkActionBlock *dup() const { return new CAwkActionBlock(*this); }
